@@ -3,6 +3,7 @@ package com.example.demo.src.user;
 
 import com.example.demo.common.Constant.SocialLoginType;
 import com.example.demo.common.oauth.OAuthService;
+import com.example.demo.src.user.entity.LoginType;
 import com.example.demo.utils.JwtService;
 import lombok.RequiredArgsConstructor;
 import com.example.demo.common.exceptions.BaseException;
@@ -42,13 +43,23 @@ public class UserController {
     @PostMapping("")
     public BaseResponse<PostUserRes> createUser(@RequestBody PostUserReq postUserReq) {
         // TODO: email 관련한 짧은 validation 예시입니다. 그 외 더 부가적으로 추가해주세요!
-        if(postUserReq.getEmail() == null){
+        if (postUserReq.getEmail() == null){
             return new BaseResponse<>(USERS_EMPTY_EMAIL);
         }
         //이메일 정규표현
-        if(!isRegexEmail(postUserReq.getEmail())){
+        if (!isRegexEmail(postUserReq.getEmail())){
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
+        LoginType loginType;
+        try {
+            loginType = LoginType.valueOf(postUserReq.getLoginType().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return new BaseResponse<>(POST_USERS_INVALID_LOGIN_TYPE);
+        }
+        if (loginType == LoginType.LOCAL && postUserReq.getPassword() == null){
+            return new BaseResponse<>(USERS_EMPTY_PASSWORD);
+        }
+
         PostUserRes postUserRes = userService.createUser(postUserReq);
         return new BaseResponse<>(postUserRes);
     }

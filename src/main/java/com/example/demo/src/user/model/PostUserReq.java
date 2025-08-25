@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,8 +20,7 @@ public class PostUserReq {
     private String email;
     private String password;
     private String name;
-
-    private boolean isOAuth;
+    private String loginType;
 
     public User toEntity() {
         return User.builder()
@@ -28,9 +29,10 @@ public class PostUserReq {
                 .password(this.password)
                 .name(this.name)
                 .accountStatus(AccountStatus.ACTIVE)
-                .loginType(LoginType.LOCAL)
+                .loginType(LoginType.valueOf(this.loginType.toUpperCase()))
                 .privacyConsentStatus(PrivacyConsentStatus.AGREE)
-                .joinedAt(java.time.LocalDateTime.now())
+                .privacyConsentDate(LocalDateTime.now())
+                .joinedAt(LocalDateTime.now())
                 .build();
     }
 }

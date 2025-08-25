@@ -33,7 +33,7 @@ public class Subscription extends BaseEntity {
     @Column(length = 20, nullable = false)
     private SubscriptionStatus status;
 
-    @Column(name = "payment_date")
+    @Column(name = "payment_date", columnDefinition = "TIMESTAMP")
     private LocalDateTime paymentDate;
 
     @Builder

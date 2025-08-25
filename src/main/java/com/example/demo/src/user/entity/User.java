@@ -30,10 +30,10 @@ public class User extends BaseEntity {
     @Column(length = 255)
     private String email;
 
-    @Column(name = "joined_at", nullable = false)
+    @Column(name = "joined_at", nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime joinedAt;
 
-    @Column(name = "last_login_at")
+    @Column(name = "last_login_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime lastLoginAt;
 
     @Enumerated(EnumType.STRING)
@@ -48,7 +48,7 @@ public class User extends BaseEntity {
     @Column(name = "privacy_consent_status", length = 20, nullable = false)
     private PrivacyConsentStatus privacyConsentStatus;
 
-    @Column(name = "privacy_consent_date")
+    @Column(name = "privacy_consent_date", columnDefinition = "TIMESTAMP")
     private LocalDateTime privacyConsentDate;
 
     @Builder

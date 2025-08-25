@@ -22,6 +22,7 @@ public enum BaseResponseStatus {
     TEST_EMPTY_COMMENT(false, HttpStatus.BAD_REQUEST.value(), "코멘트를 입력해주세요."),
     POST_USERS_INVALID_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
     POST_USERS_EXISTS_EMAIL(false,HttpStatus.BAD_REQUEST.value(),"중복된 이메일입니다."),
+
     USERS_EMPTY_LOGIN_TYPE(false, HttpStatus.BAD_REQUEST.value(), "로그인 타입을 입력해주세요."),
     POST_USERS_INVALID_LOGIN_TYPE(false, HttpStatus.BAD_REQUEST.value(), "지원하지 않는 로그인 타입입니다."),
     USERS_EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),

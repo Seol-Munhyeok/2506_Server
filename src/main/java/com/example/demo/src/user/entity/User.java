@@ -4,6 +4,7 @@ import com.example.demo.common.entity.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -18,10 +19,10 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "login_id", length = 50, nullable = false, unique = true)
+    @Column(name = "login_id", length = 20, nullable = false, unique = true)
     private String loginId;
 
-    @Column(name = "user_name", length = 100)
+    @Column(name = "user_name", length = 20, nullable = false, unique = true)
     private String name;
 
     @Column(name = "password_hash", length = 255)
@@ -29,6 +30,22 @@ public class User extends BaseEntity {
 
     @Column(length = 255)
     private String email;
+
+    @Column(name = "phone_number", length = 20, nullable = false)
+    private String phoneNumber;
+
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
+
+    @Column(name = "terms_agreed", nullable = false)
+    private boolean termsOfServiceAgreed;
+
+    @Column(name = "privacy_consent_status", length = 20, nullable = false)
+    private boolean privacyConsentStatus;
+
+    @Column(name = "location_agreed", nullable = false)
+    private boolean locationServiceAgreed;
+
 
     @Column(name = "joined_at", nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime joinedAt;
@@ -44,9 +61,7 @@ public class User extends BaseEntity {
     @Column(name = "login_type", length = 20, nullable = false)
     private LoginType loginType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "privacy_consent_status", length = 20, nullable = false)
-    private PrivacyConsentStatus privacyConsentStatus;
+
 
     @Column(name = "privacy_consent_date", columnDefinition = "TIMESTAMP")
     private LocalDateTime privacyConsentDate;
@@ -54,7 +69,7 @@ public class User extends BaseEntity {
     @Builder
     public User(Long id, String loginId, String name, String password, String email,
                 LocalDateTime joinedAt, LocalDateTime lastLoginAt, AccountStatus accountStatus,
-                LoginType loginType, PrivacyConsentStatus privacyConsentStatus, LocalDateTime privacyConsentDate) {
+                LoginType loginType, boolean privacyConsentStatus, LocalDateTime privacyConsentDate) {
         this.id = id;
         this.loginId = loginId;
         this.name = name;
@@ -77,7 +92,7 @@ public class User extends BaseEntity {
     }
 
     public void withdrawPrivacyConsent() {
-        this.privacyConsentStatus = PrivacyConsentStatus.DISAGREE;
+        this.privacyConsentStatus = false;
         this.privacyConsentDate = null;
     }
 }

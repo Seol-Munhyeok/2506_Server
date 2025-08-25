@@ -1,6 +1,5 @@
 package com.example.demo.src.user;
 
-import com.example.demo.src.user.entity.PrivacyConsentStatus;
 import com.example.demo.src.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -18,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllByState(State state);
     List<User> findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(
             LocalDateTime date,
-            PrivacyConsentStatus status
+            boolean status
     );
 
 }

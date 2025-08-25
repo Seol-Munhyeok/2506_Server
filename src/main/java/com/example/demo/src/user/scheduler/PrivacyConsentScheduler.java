@@ -3,7 +3,6 @@ package com.example.demo.src.user.scheduler;
 import com.example.demo.src.user.MailService;
 import com.example.demo.src.user.NotificationService;
 import com.example.demo.src.user.UserRepository;
-import com.example.demo.src.user.entity.PrivacyConsentStatus;
 import com.example.demo.src.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,7 +26,7 @@ public class PrivacyConsentScheduler {
         LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
         List<User> users = userRepository.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(
                 oneYearAgo,
-                PrivacyConsentStatus.AGREE
+                true
         );
         for (User user : users) {
             user.withdrawPrivacyConsent();

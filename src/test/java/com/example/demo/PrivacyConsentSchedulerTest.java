@@ -5,7 +5,6 @@ import com.example.demo.src.user.NotificationService;
 import com.example.demo.src.user.UserRepository;
 import com.example.demo.src.user.entity.AccountStatus;
 import com.example.demo.src.user.entity.LoginType;
-import com.example.demo.src.user.entity.PrivacyConsentStatus;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.src.user.scheduler.PrivacyConsentScheduler;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -47,16 +47,16 @@ class PrivacyConsentSchedulerTest {
                 .lastLoginAt(null)
                 .accountStatus(AccountStatus.ACTIVE)
                 .loginType(LoginType.LOCAL)
-                .privacyConsentStatus(PrivacyConsentStatus.AGREE)
+                .privacyConsentStatus(true)
                 .privacyConsentDate(LocalDateTime.now().minusYears(2))
                 .build();
 
-        when(userRepository.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(any(), eq(PrivacyConsentStatus.AGREE)))
+        when(userRepository.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(any(), eq(true)))
                 .thenReturn(Collections.singletonList(user));
 
         privacyConsentScheduler.processPrivacyConsents();
 
-        assertEquals(PrivacyConsentStatus.DISAGREE, user.getPrivacyConsentStatus());
+        assertFalse(user.isPrivacyConsentStatus());
         verify(notificationService).sendPrivacyConsentRenewal(user);
         verify(mailService).sendPrivacyConsentRenewal(user);
     }

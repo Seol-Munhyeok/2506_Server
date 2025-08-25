@@ -2,7 +2,6 @@ package com.example.demo.src.user.model;
 
 import com.example.demo.src.user.entity.AccountStatus;
 import com.example.demo.src.user.entity.LoginType;
-import com.example.demo.src.user.entity.PrivacyConsentStatus;
 import com.example.demo.src.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +30,7 @@ public class AppleUser {
                 .name(this.name)
                 .accountStatus(AccountStatus.ACTIVE)
                 .loginType(LoginType.APPLE)
-                .privacyConsentStatus(PrivacyConsentStatus.AGREE)
+                .privacyConsentStatus(true)
                 .joinedAt(java.time.LocalDateTime.now())
                 .build();
     }

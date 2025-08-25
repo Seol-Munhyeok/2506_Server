@@ -1,5 +1,8 @@
 package com.example.demo.src.user.model;
 
+import com.example.demo.src.user.entity.AccountStatus;
+import com.example.demo.src.user.entity.LoginType;
+import com.example.demo.src.user.entity.PrivacyConsentStatus;
 import com.example.demo.src.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,9 +30,9 @@ public class GoogleUser {
                 .email(this.email)
                 .password("NONE")
                 .name(this.name)
-                .accountStatus("ACTIVE")
-                .loginType("GOOGLE")
-                .privacyConsentStatus("AGREE")
+                .accountStatus(AccountStatus.ACTIVE)
+                .loginType(LoginType.GOOGLE)
+                .privacyConsentStatus(PrivacyConsentStatus.AGREE)
                 .joinedAt(java.time.LocalDateTime.now())
                 .build();
     }

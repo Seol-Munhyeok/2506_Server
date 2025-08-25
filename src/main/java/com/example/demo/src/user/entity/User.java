@@ -36,22 +36,25 @@ public class User extends BaseEntity {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "account_status", length = 20, nullable = false)
-    private String accountStatus;
+    private AccountStatus accountStatus;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "login_type", length = 20, nullable = false)
-    private String loginType;
+    private LoginType loginType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "privacy_consent_status", length = 20, nullable = false)
-    private String privacyConsentStatus;
+    private PrivacyConsentStatus privacyConsentStatus;
 
     @Column(name = "privacy_consent_date")
     private LocalDateTime privacyConsentDate;
 
     @Builder
     public User(Long id, String loginId, String name, String password, String email,
-                LocalDateTime joinedAt, LocalDateTime lastLoginAt, String accountStatus,
-                String loginType, String privacyConsentStatus, LocalDateTime privacyConsentDate) {
+                LocalDateTime joinedAt, LocalDateTime lastLoginAt, AccountStatus accountStatus,
+                LoginType loginType, PrivacyConsentStatus privacyConsentStatus, LocalDateTime privacyConsentDate) {
         this.id = id;
         this.loginId = loginId;
         this.name = name;

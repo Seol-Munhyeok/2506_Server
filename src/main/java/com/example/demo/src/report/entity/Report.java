@@ -37,11 +37,11 @@ public class Report extends BaseEntity {
     private String reportReason;
 
     @Column(length = 20, nullable = false)
-    private String status;
+    private ReportStatus status;
 
     @Builder
     public Report(Long id, User reporter, Feed reportedFeed, Comment reportedComment,
-                  String reportReason, String status) {
+                  String reportReason, ReportStatus status) {
         this.id = id;
         this.reporter = reporter;
         this.reportedFeed = reportedFeed;

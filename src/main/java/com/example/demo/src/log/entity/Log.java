@@ -1,5 +1,6 @@
 package com.example.demo.src.log.entity;
 
+import com.example.demo.common.entity.BaseEntity;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -7,22 +8,24 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Getter
 @Entity
 @Table(name = "logs")
-public class Log {
+public class Log extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "log_id", nullable = false, updatable = false)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
-    private String domain;
+    private LogDomain domain;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
-    private String action;
+    private LogAction action;
 
     @Column(name = "entity_id", nullable = false)
     private Long entityId;
@@ -35,7 +38,7 @@ public class Log {
     private LocalDateTime createdAt;
 
     @Builder
-    public Log(Long id, String domain, String action, Long entityId, String message) {
+    public Log(Long id, LogDomain domain, LogAction action, Long entityId, String message) {
         this.id = id;
         this.domain = domain;
         this.action = action;

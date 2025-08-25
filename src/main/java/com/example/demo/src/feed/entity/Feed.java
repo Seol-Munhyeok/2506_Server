@@ -25,11 +25,12 @@ public class Feed extends BaseEntity {
     @Lob
     private String content;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
-    private String status;
+    private FeedStatus status;
 
     @Builder
-    public Feed(Long id, User user, String content, String status) {
+    public Feed(Long id, User user, String content, FeedStatus status) {
         this.id = id;
         this.user = user;
         this.content = content;

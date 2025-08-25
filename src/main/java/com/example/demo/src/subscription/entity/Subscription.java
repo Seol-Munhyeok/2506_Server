@@ -31,14 +31,14 @@ public class Subscription extends BaseEntity {
     private LocalDate endDate;
 
     @Column(length = 20, nullable = false)
-    private String status;
+    private SubscriptionStatus status;
 
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
 
     @Builder
     public Subscription(Long id, User user, LocalDate startDate, LocalDate endDate,
-                        String status, LocalDateTime paymentDate) {
+                        SubscriptionStatus status, LocalDateTime paymentDate) {
         this.id = id;
         this.user = user;
         this.startDate = startDate;

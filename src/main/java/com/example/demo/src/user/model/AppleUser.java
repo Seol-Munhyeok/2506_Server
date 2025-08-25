@@ -13,22 +13,24 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostUserReq {
-    private String loginId;
-    private String email;
-    private String password;
-    private String name;
-
-    private boolean isOAuth;
+public class AppleUser {
+    public String id;
+    public String email;
+    public Boolean verifiedEmail;
+    public String name;
+    public String givenName;
+    public String familyName;
+    public String picture;
+    public String locale;
 
     public User toEntity() {
         return User.builder()
-                .loginId(this.loginId)
+                .loginId(this.email)
                 .email(this.email)
-                .password(this.password)
+                .password("NONE")
                 .name(this.name)
                 .accountStatus(AccountStatus.ACTIVE)
-                .loginType(LoginType.LOCAL)
+                .loginType(LoginType.APPLE)
                 .privacyConsentStatus(PrivacyConsentStatus.AGREE)
                 .joinedAt(java.time.LocalDateTime.now())
                 .build();

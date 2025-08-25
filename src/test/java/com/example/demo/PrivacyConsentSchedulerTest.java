@@ -1,0 +1,63 @@
+package com.example.demo;
+
+import com.example.demo.src.user.MailService;
+import com.example.demo.src.user.NotificationService;
+import com.example.demo.src.user.UserRepository;
+import com.example.demo.src.user.entity.AccountStatus;
+import com.example.demo.src.user.entity.LoginType;
+import com.example.demo.src.user.entity.PrivacyConsentStatus;
+import com.example.demo.src.user.entity.User;
+import com.example.demo.src.user.scheduler.PrivacyConsentScheduler;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class PrivacyConsentSchedulerTest {
+
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private NotificationService notificationService;
+    @Mock
+    private MailService mailService;
+    @InjectMocks
+    private PrivacyConsentScheduler privacyConsentScheduler;
+
+    @Test
+    void processPrivacyConsents_updatesStatusAndSendsNotifications() {
+        User user = User.builder()
+                .id(1L)
+                .loginId("login")
+                .name("name")
+                .password("pwd")
+                .email("email@example.com")
+                .joinedAt(LocalDateTime.now().minusYears(2))
+                .lastLoginAt(null)
+                .accountStatus(AccountStatus.ACTIVE)
+                .loginType(LoginType.LOCAL)
+                .privacyConsentStatus(PrivacyConsentStatus.AGREE)
+                .privacyConsentDate(LocalDateTime.now().minusYears(2))
+                .build();
+
+        when(userRepository.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(any(), eq(PrivacyConsentStatus.AGREE)))
+                .thenReturn(Collections.singletonList(user));
+
+        privacyConsentScheduler.processPrivacyConsents();
+
+        assertEquals(PrivacyConsentStatus.DISAGREE, user.getPrivacyConsentStatus());
+        verify(notificationService).sendPrivacyConsentRenewal(user);
+        verify(mailService).sendPrivacyConsentRenewal(user);
+    }
+}

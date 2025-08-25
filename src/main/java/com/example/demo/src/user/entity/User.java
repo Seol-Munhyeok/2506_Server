@@ -75,4 +75,9 @@ public class User extends BaseEntity {
     public void deleteUser() {
         this.state = State.INACTIVE;
     }
+
+    public void withdrawPrivacyConsent() {
+        this.privacyConsentStatus = PrivacyConsentStatus.DISAGREE;
+        this.privacyConsentDate = null;
+    }
 }

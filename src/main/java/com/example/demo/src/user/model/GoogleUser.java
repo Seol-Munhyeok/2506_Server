@@ -23,10 +23,14 @@ public class GoogleUser {
 
     public User toEntity() {
         return User.builder()
+                .loginId(this.email)
                 .email(this.email)
                 .password("NONE")
                 .name(this.name)
-                .isOAuth(true)
+                .accountStatus("ACTIVE")
+                .loginType("GOOGLE")
+                .privacyConsentStatus("AGREE")
+                .joinedAt(java.time.LocalDateTime.now())
                 .build();
     }
 }

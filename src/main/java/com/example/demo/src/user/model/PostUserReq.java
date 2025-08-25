@@ -11,6 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostUserReq {
+    private String loginId;
     private String email;
     private String password;
     private String name;
@@ -19,10 +20,14 @@ public class PostUserReq {
 
     public User toEntity() {
         return User.builder()
+                .loginId(this.loginId)
                 .email(this.email)
                 .password(this.password)
                 .name(this.name)
-                .isOAuth(this.isOAuth)
+                .accountStatus("ACTIVE")
+                .loginType("LOCAL")
+                .privacyConsentStatus("AGREE")
+                .joinedAt(java.time.LocalDateTime.now())
                 .build();
     }
 }

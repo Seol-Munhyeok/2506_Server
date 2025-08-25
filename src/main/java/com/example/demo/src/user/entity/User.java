@@ -4,38 +4,65 @@ import com.example.demo.common.entity.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
 @Getter
 @Entity // 필수, Class 를 Database Table화 해주는 것이다
-@Table(name = "USER") // Table 이름을 명시해주지 않으면 class 이름을 Table 이름으로 대체한다.
+@Table(name = "users") // Table 이름을 명시해주지 않으면 class 이름을 Table 이름으로 대체한다.
 public class User extends BaseEntity {
 
     @Id // PK를 의미하는 어노테이션
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "user_id", nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String email;
+    @Column(name = "login_id", length = 50, nullable = false, unique = true)
+    private String loginId;
 
-    @Column(nullable = false)
-    private String password;
-
-    @Column(nullable = false, length = 30)
+    @Column(name = "user_name", length = 100)
     private String name;
 
-    @Column(nullable = false)
-    private boolean isOAuth;
+    @Column(name = "password_hash", length = 255)
+    private String password;
+
+    @Column(length = 255)
+    private String email;
+
+    @Column(name = "joined_at", nullable = false)
+    private LocalDateTime joinedAt;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
+    @Column(name = "account_status", length = 20, nullable = false)
+    private String accountStatus;
+
+    @Column(name = "login_type", length = 20, nullable = false)
+    private String loginType;
+
+    @Column(name = "privacy_consent_status", length = 20, nullable = false)
+    private String privacyConsentStatus;
+
+    @Column(name = "privacy_consent_date")
+    private LocalDateTime privacyConsentDate;
 
     @Builder
-    public User(Long id, String email, String password, String name, boolean isOAuth) {
+    public User(Long id, String loginId, String name, String password, String email,
+                LocalDateTime joinedAt, LocalDateTime lastLoginAt, String accountStatus,
+                String loginType, String privacyConsentStatus, LocalDateTime privacyConsentDate) {
         this.id = id;
-        this.email = email;
-        this.password = password;
+        this.loginId = loginId;
         this.name = name;
-        this.isOAuth = isOAuth;
+        this.password = password;
+        this.email = email;
+        this.joinedAt = joinedAt;
+        this.lastLoginAt = lastLoginAt;
+        this.accountStatus = accountStatus;
+        this.loginType = loginType;
+        this.privacyConsentStatus = privacyConsentStatus;
+        this.privacyConsentDate = privacyConsentDate;
     }
 
     public void updateName(String name) {
@@ -45,5 +72,4 @@ public class User extends BaseEntity {
     public void deleteUser() {
         this.state = State.INACTIVE;
     }
-
 }

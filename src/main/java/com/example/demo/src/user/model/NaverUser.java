@@ -28,10 +28,16 @@ public class NaverUser {
                 .email(this.email)
                 .password("NONE")
                 .name(this.name)
+                .phoneNumber(null)
+                .birthDate(java.time.LocalDate.of(2000,1,1))
+                .termsOfServiceAgreed(true)
+                .privacyConsentStatus(true)
+                .locationServiceAgreed(true)
                 .accountStatus(AccountStatus.ACTIVE)
                 .loginType(LoginType.NAVER)
                 .privacyConsentStatus(true)
                 .joinedAt(java.time.LocalDateTime.now())
+                .privacyConsentDate(java.time.LocalDateTime.now())
                 .build();
     }
 }

@@ -19,6 +19,11 @@ public class PostUserReq {
     private String email;
     private String password;
     private String name;
+    private String phoneNumber;
+    private String birthDate;
+    private boolean termsOfServiceAgreed;
+    private boolean privacyConsentStatus;
+    private boolean locationServiceAgreed;
     private String loginType;
 
     public User toEntity() {
@@ -27,6 +32,11 @@ public class PostUserReq {
                 .email(this.email)
                 .password(this.password)
                 .name(this.name)
+                .phoneNumber(this.phoneNumber)
+                .birthDate(java.time.LocalDate.parse(this.birthDate))
+                .termsOfServiceAgreed(this.termsOfServiceAgreed)
+                .privacyConsentStatus(this.privacyConsentStatus)
+                .locationServiceAgreed(this.locationServiceAgreed)
                 .accountStatus(AccountStatus.ACTIVE)
                 .loginType(LoginType.valueOf(this.loginType.toUpperCase()))
                 .privacyConsentStatus(true)

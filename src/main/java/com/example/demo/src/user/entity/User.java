@@ -67,19 +67,35 @@ public class User extends BaseEntity {
     private LocalDateTime privacyConsentDate;
 
     @Builder
-    public User(Long id, String loginId, String name, String password, String email,
-                LocalDateTime joinedAt, LocalDateTime lastLoginAt, AccountStatus accountStatus,
-                LoginType loginType, boolean privacyConsentStatus, LocalDateTime privacyConsentDate) {
+    public User(Long id,
+                String loginId,
+                String name,
+                String password,
+                String email,
+                String phoneNumber,
+                LocalDate birthDate,
+                boolean termsOfServiceAgreed,
+                boolean privacyConsentStatus,
+                boolean locationServiceAgreed,
+                LocalDateTime joinedAt,
+                LocalDateTime lastLoginAt,
+                AccountStatus accountStatus,
+                LoginType loginType,
+                LocalDateTime privacyConsentDate) {
         this.id = id;
         this.loginId = loginId;
         this.name = name;
         this.password = password;
         this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.birthDate = birthDate;
+        this.termsOfServiceAgreed = termsOfServiceAgreed;
+        this.privacyConsentStatus = privacyConsentStatus;
+        this.locationServiceAgreed = locationServiceAgreed;
         this.joinedAt = joinedAt;
         this.lastLoginAt = lastLoginAt;
         this.accountStatus = accountStatus;
         this.loginType = loginType;
-        this.privacyConsentStatus = privacyConsentStatus;
         this.privacyConsentDate = privacyConsentDate;
     }
 

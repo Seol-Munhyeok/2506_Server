@@ -13,6 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByIdAndState(Long id, State state);
     Optional<User> findByEmailAndState(String email, State state);
+    Optional<User> findByLoginIdAndState(String loginId, State state);
     List<User> findAllByEmailAndState(String email, State state);
     List<User> findAllByState(State state);
     List<User> findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(

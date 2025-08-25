@@ -29,10 +29,16 @@ public class KakaoUser {
                 .email(this.email)
                 .password("NONE")
                 .name(this.name)
+                .phoneNumber(null)
+                .birthDate(java.time.LocalDate.of(2000,1,1))
+                .termsOfServiceAgreed(true)
+                .privacyConsentStatus(true)
+                .locationServiceAgreed(true)
                 .accountStatus(AccountStatus.ACTIVE)
                 .loginType(LoginType.KAKAO)
                 .privacyConsentStatus(true)
                 .joinedAt(java.time.LocalDateTime.now())
+                .privacyConsentDate(java.time.LocalDateTime.now())
                 .build();
     }
 }

@@ -25,16 +25,21 @@ import static com.example.demo.common.response.BaseResponseStatus.*;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserDataManager userDataManager;
     private final JwtService jwtService;
 
 
     //POST
     public PostUserRes createUser(PostUserReq postUserReq) {
-        //중복 체크
-        Optional<User> checkUser = userRepository.findByEmailAndState(postUserReq.getEmail(), ACTIVE);
+        //이메일 중복 체크
+        Optional<User> checkUser = userDataManager.findByEmailAndState(postUserReq.getEmail(), ACTIVE);
         if (checkUser.isPresent()) {
             throw new BaseException(POST_USERS_EXISTS_EMAIL);
+        }
+
+        // LoginId 중복 체크
+        if (userDataManager.findByLoginIdAndState(postUserReq.getLoginId(), ACTIVE).isPresent()) {
+            throw new BaseException(POST_USERS_EXISTS_LOGIN_ID);
         }
 
         String encryptPwd;
@@ -45,41 +50,40 @@ public class UserService {
             throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
         }
 
-        User saveUser = userRepository.save(postUserReq.toEntity());
+        User saveUser = userDataManager.save(postUserReq.toEntity());
         return new PostUserRes(saveUser.getId());
     }
 
     public PostUserRes createOAuthUser(User user) {
-        User saveUser = userRepository.save(user);
+        User saveUser = userDataManager.save(user);
 
         // JWT 발급
         String jwtToken = jwtService.createJwt(saveUser.getId());
         return new PostUserRes(saveUser.getId(), jwtToken);
-
     }
 
     public void modifyUserName(Long userId, PatchUserReq patchUserReq) {
-        User user = userRepository.findByIdAndState(userId, ACTIVE)
+        User user = userDataManager.findByIdAndState(userId, ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
         user.updateName(patchUserReq.getName());
     }
 
     public void deleteUser(Long userId) {
-        User user = userRepository.findByIdAndState(userId, ACTIVE)
+        User user = userDataManager.findByIdAndState(userId, ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
         user.deleteUser();
     }
 
     @Transactional(readOnly = true)
     public List<GetUserRes> getUsers() {
-        return userRepository.findAllByState(ACTIVE).stream()
+        return userDataManager.findAllByState(ACTIVE).stream()
                 .map(GetUserRes::new)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<GetUserRes> getUsersByEmail(String email) {
-        return userRepository.findAllByEmailAndState(email, ACTIVE).stream()
+        return userDataManager.findAllByEmailAndState(email, ACTIVE).stream()
                 .map(GetUserRes::new)
                 .collect(Collectors.toList());
     }
@@ -87,20 +91,20 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public GetUserRes getUser(Long userId) {
-        User user = userRepository.findByIdAndState(userId, ACTIVE)
+        User user = userDataManager.findByIdAndState(userId, ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
         return new GetUserRes(user);
     }
 
     @Transactional(readOnly = true)
     public boolean checkUserByEmail(String email) {
-        Optional<User> result = userRepository.findByEmailAndState(email, ACTIVE);
+        Optional<User> result = userDataManager.findByEmailAndState(email, ACTIVE);
         if (result.isPresent()) return true;
         return false;
     }
 
     public PostLoginRes logIn(PostLoginReq postLoginReq) {
-        User user = userRepository.findByEmailAndState(postLoginReq.getEmail(), ACTIVE)
+        User user = userDataManager.findByEmailAndState(postLoginReq.getEmail(), ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
 
         String encryptPwd;
@@ -121,7 +125,12 @@ public class UserService {
     }
 
     public GetUserRes getUserByEmail(String email) {
-        User user = userRepository.findByEmailAndState(email, ACTIVE).orElseThrow(() -> new BaseException(NOT_FIND_USER));
+        User user = userDataManager.findByEmailAndState(email, ACTIVE).orElseThrow(() -> new BaseException(NOT_FIND_USER));
         return new GetUserRes(user);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isLoginIdDuplicate(String loginId) {
+        return userDataManager.findByLoginIdAndState(loginId, ACTIVE).isPresent();
     }
 }

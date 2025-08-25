@@ -2,7 +2,7 @@ package com.example.demo.src.user.scheduler;
 
 import com.example.demo.src.user.MailService;
 import com.example.demo.src.user.NotificationService;
-import com.example.demo.src.user.UserRepository;
+import com.example.demo.src.user.UserDataManager;
 import com.example.demo.src.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PrivacyConsentScheduler {
 
-    private final UserRepository userRepository;
+    private final UserDataManager userDataManager;
     private final NotificationService notificationService;
     private final MailService mailService;
 
@@ -24,7 +24,7 @@ public class PrivacyConsentScheduler {
     @Transactional
     public void processPrivacyConsents() {
         LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
-        List<User> users = userRepository.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(
+        List<User> users = userDataManager.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(
                 oneYearAgo,
                 true
         );

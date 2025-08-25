@@ -2,7 +2,7 @@ package com.example.demo;
 
 import com.example.demo.src.user.MailService;
 import com.example.demo.src.user.NotificationService;
-import com.example.demo.src.user.UserRepository;
+import com.example.demo.src.user.UserDataManager;
 import com.example.demo.src.user.entity.AccountStatus;
 import com.example.demo.src.user.entity.LoginType;
 import com.example.demo.src.user.entity.User;
@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -27,7 +26,7 @@ import static org.mockito.Mockito.when;
 class PrivacyConsentSchedulerTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserDataManager userDataManager;
     @Mock
     private NotificationService notificationService;
     @Mock
@@ -43,6 +42,11 @@ class PrivacyConsentSchedulerTest {
                 .name("name")
                 .password("pwd")
                 .email("email@example.com")
+                .phoneNumber(null)
+                .birthDate(java.time.LocalDate.of(2000,1,1))
+                .termsOfServiceAgreed(true)
+                .privacyConsentStatus(true)
+                .locationServiceAgreed(true)
                 .joinedAt(LocalDateTime.now().minusYears(2))
                 .lastLoginAt(null)
                 .accountStatus(AccountStatus.ACTIVE)
@@ -51,7 +55,7 @@ class PrivacyConsentSchedulerTest {
                 .privacyConsentDate(LocalDateTime.now().minusYears(2))
                 .build();
 
-        when(userRepository.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(any(), eq(true)))
+        when(userDataManager.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(any(), eq(true)))
                 .thenReturn(Collections.singletonList(user));
 
         privacyConsentScheduler.processPrivacyConsents();

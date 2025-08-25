@@ -3,6 +3,7 @@ package com.example.demo.src.user;
 
 import com.example.demo.common.Constant.SocialLoginType;
 import com.example.demo.common.oauth.OAuthService;
+import com.example.demo.src.log.entity.Log;
 import com.example.demo.src.user.entity.LoginType;
 import com.example.demo.utils.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 
 import static com.example.demo.common.response.BaseResponseStatus.*;
 import static com.example.demo.utils.ValidationRegex.isRegexEmail;
+import static com.example.demo.utils.ValidationRegex.isRegexId;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,13 +45,21 @@ public class UserController {
     @ResponseBody
     @PostMapping("")
     public BaseResponse<PostUserRes> createUser(@RequestBody PostUserReq postUserReq) {
-        // TODO: email 관련한 짧은 validation 예시입니다. 그 외 더 부가적으로 추가해주세요!
-        if (postUserReq.getEmail() == null){
+        if (postUserReq.getEmail() == null) {
             return new BaseResponse<>(USERS_EMPTY_EMAIL);
         }
         //이메일 정규표현
-        if (!isRegexEmail(postUserReq.getEmail())){
+        if (!isRegexEmail(postUserReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
+        }
+        if (postUserReq.getLoginId() == null || postUserReq.getLoginId().isEmpty()) {
+            return new BaseResponse<>(USERS_EMPTY_LOGIN_ID);
+        }
+        if (!isRegexId(postUserReq.getLoginId())) {
+            return new BaseResponse<>(POST_USERS_INVALID_LOGIN_ID);
+        }
+        if (userService.isLoginIdDuplicate(postUserReq.getLoginId())) {
+            return new BaseResponse<>(POST_USERS_EXISTS_LOGIN_ID);
         }
         LoginType loginType;
         try {
@@ -56,9 +67,49 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             return new BaseResponse<>(POST_USERS_INVALID_LOGIN_TYPE);
         }
-        if (loginType == LoginType.LOCAL && postUserReq.getPassword() == null){
-            return new BaseResponse<>(USERS_EMPTY_PASSWORD);
+
+        if (loginType == LoginType.LOCAL) {
+            if (postUserReq.getPassword() == null || postUserReq.getPassword().length() < 6 || postUserReq.getPassword().length() > 20) {
+                return new BaseResponse<>(postUserReq.getPassword() == null ? USERS_EMPTY_PASSWORD : POST_USERS_INVALID_PASSWORD);
+            }
+        } else {
+            postUserReq.setPassword("NONE");  // 소셜 로그인이라면 패스워드를 임의의 값으로 설정
         }
+
+        if (postUserReq.getPhoneNumber() == null || postUserReq.getPhoneNumber().isEmpty()) {
+            return new BaseResponse<>(POST_USERS_INVALID_PHONE_NUMBER);
+        }
+
+        if (postUserReq.getName() == null || postUserReq.getName().isEmpty()) {
+            return new BaseResponse<>(POST_USERS_INVALID_NAME);
+        }
+
+        if (postUserReq.getName().length() > 20) {
+            return new BaseResponse<>(POST_USERS_INVALID_NAME);
+        }
+
+        if (postUserReq.getBirthDate() == null) {
+            return new BaseResponse<>(POST_USERS_INVALID_BIRTHDATE);
+        }
+        LocalDate birth;
+        try {
+            birth = LocalDate.parse(postUserReq.getBirthDate());
+        } catch (java.time.format.DateTimeParseException e) {
+            return new BaseResponse<>(POST_USERS_INVALID_BIRTHDATE);
+        }
+
+        int birthYear = birth.getYear();
+        if (birthYear < 1919 || birthYear > 2021) {
+            return new BaseResponse<>(POST_USERS_INVALID_BIRTHDATE);
+        }
+        if (birthYear >= 2016) {
+            return new BaseResponse<>(POST_USERS_RESTRICTED_AGE);
+        }
+
+        if (!postUserReq.isTermsOfServiceAgreed() || !postUserReq.isPrivacyConsentStatus() || !postUserReq.isLocationServiceAgreed()) {
+            return new BaseResponse<>(POST_USERS_NOT_AGREED_TERMS);
+        }
+
 
         PostUserRes postUserRes = userService.createUser(postUserReq);
         return new BaseResponse<>(postUserRes);

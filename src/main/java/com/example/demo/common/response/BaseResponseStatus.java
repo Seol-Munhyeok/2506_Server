@@ -37,7 +37,6 @@ public enum BaseResponseStatus {
     POST_USERS_RESTRICTED_AGE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_AGE_RESTRICTED", "만 8세 이상만 가입 가능합니다."),
     POST_USERS_NOT_AGREED_TERMS(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_TERMS_NOT_AGREED", "필수 약관에 모두 동의해야 합니다."),
 
-    FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND,"ERROR_USER_NOT_FOUND", "없는 아이디거나 비밀번호가 틀렸습니다."),
     USERS_EMPTY_LOGIN_TYPE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_LOGIN_TYPE_EMPTY", "로그인 타입을 입력해주세요."),
     POST_USERS_INVALID_LOGIN_TYPE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_LOGIN_TYPE_INVALID", "지원하지 않는 로그인 타입입니다."),
 
@@ -50,7 +49,11 @@ public enum BaseResponseStatus {
     RESPONSE_ERROR(false, HttpStatus.NOT_FOUND, "ERROR_RESOURCE_NOT_FOUND", "값을 불러오는데 실패하였습니다."),
     NOT_FIND_USER(false, HttpStatus.NOT_FOUND, "ERROR_RESOURCE_USER_NOT_FOUND", "일치하는 유저가 없습니다."),
 
-
+    FAILED_TO_LOGIN(false, HttpStatus.UNAUTHORIZED, "ERROR_LOGIN-FAILED", "아이디 또는 비밀번호가 일치하지 않습니다."),
+    DORMANT_USER(false, HttpStatus.FORBIDDEN, "ERROR_USER_STATUS_DORMANT", "휴면 상태의 유저입니다."),
+    BLOCKED_USER(false, HttpStatus.FORBIDDEN, "ERROR_USER_STATUS_BLOCKED", "차단된 유저입니다."),
+    SUSPENDED_USER(false, HttpStatus.FORBIDDEN, "ERROR_USER_STATUS_SUSPENDED", "정지된 유저입니다."),
+    WITHDRAWN_USER(false, HttpStatus.FORBIDDEN, "ERROR_USER_STATUS_WITHDRAWN", "탈퇴한 유저입니다."),
 
     /**
      * 500 :  Database, Server 오류

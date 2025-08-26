@@ -104,8 +104,15 @@ public class UserService {
     }
 
     public PostLoginRes logIn(PostLoginReq postLoginReq) {
-        User user = userDataManager.findByEmailAndState(postLoginReq.getEmail(), ACTIVE)
+        User user = userDataManager.findByLoginIdAndState(postLoginReq.getLoginId(), ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
+
+        switch (user.getAccountStatus()) {
+            case DORMANT: throw new BaseException(DORMANT_USER);
+            case BLOCKED: throw new BaseException(BLOCKED_USER);
+            case SUSPENDED: throw new BaseException(SUSPENDED_USER);
+            case WITHDRAWN: throw new BaseException(WITHDRAWN_USER);
+        }
 
         String encryptPwd;
         try {

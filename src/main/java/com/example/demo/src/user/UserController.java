@@ -6,6 +6,8 @@ import com.example.demo.common.oauth.OAuthService;
 import com.example.demo.src.log.entity.Log;
 import com.example.demo.src.user.entity.LoginType;
 import com.example.demo.utils.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
@@ -47,6 +49,7 @@ public class UserController {
     // Body
     @ResponseBody
     @PostMapping("")
+    @Operation(summary = "회원가입", description = "신규 회원을 생성합니다")
     public ResponseEntity<BaseResponse<PostUserRes>> createUser(@RequestBody PostUserReq req) {
         String email   = trimOrNull(req.getEmail());
         String loginId = trimOrNull(req.getLoginId());
@@ -123,13 +126,15 @@ public class UserController {
     //Query String
     @ResponseBody
     @GetMapping("") // (GET) 127.0.0.1:9000/app/users
-    public BaseResponse<List<GetUserRes>> getUsers(@RequestParam(required = false) String Email) {
-        if(Email == null){
+    @Operation(summary = "회원 목록 조회", description = "전체 회원 또는 이메일로 회원을 조회합니다")
+    public BaseResponse<List<GetUserRes>> getUsers(@Parameter(description = "검색할 이메일") @RequestParam(required = false) String Email) {
+        String email = trimOrNull(Email);
+        if(email == null){
             List<GetUserRes> getUsersRes = userService.getUsers();
             return new BaseResponse<>(getUsersRes);
         }
-        // Get Users
-        List<GetUserRes> getUsersRes = userService.getUsersByEmail(Email);
+        if (!isRegexEmail(email)) throw new BaseException(POST_USERS_INVALID_EMAIL);
+        List<GetUserRes> getUsersRes = userService.getUsersByEmail(email);
         return new BaseResponse<>(getUsersRes);
     }
 
@@ -141,11 +146,12 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @GetMapping("/{userId}") // (GET) 127.0.0.1:9000/app/users/:userId
+    @Operation(summary = "회원 단건 조회", description = "userId로 회원 정보를 조회합니다")
     public BaseResponse<GetUserRes> getUser(@PathVariable("userId") Long userId) {
+        if (userId == null || userId <= 0) throw new BaseException(NOT_FIND_USER);
         GetUserRes getUserRes = userService.getUser(userId);
         return new BaseResponse<>(getUserRes);
     }
-
 
 
     /**
@@ -155,15 +161,20 @@ public class UserController {
      */
     @ResponseBody
     @PatchMapping("/{userId}")
+    @Operation(summary = "회원 이름 수정", description = "userId로 회원 이름을 수정합니다")
     public BaseResponse<String> modifyUserName(@PathVariable("userId") Long userId, @RequestBody PatchUserReq patchUserReq){
 
         Long jwtUserId = jwtService.getUserId();
+        if (!jwtUserId.equals(userId)) throw new BaseException(INVALID_USER_JWT);
+
+        String name = trimOrNull(patchUserReq.getName());
+        if (name == null || name.isEmpty() || name.length() > 20) throw new BaseException(POST_USERS_INVALID_NAME);
+        patchUserReq.setName(name);
 
         userService.modifyUserName(userId, patchUserReq);
 
         String result = "수정 완료!!";
         return new BaseResponse<>(result);
-
     }
 
     /**
@@ -173,8 +184,10 @@ public class UserController {
      */
     @ResponseBody
     @DeleteMapping("/{userId}")
+    @Operation(summary = "회원 삭제", description = "userId로 회원을 비활성화합니다")
     public BaseResponse<String> deleteUser(@PathVariable("userId") Long userId){
         Long jwtUserId = jwtService.getUserId();
+        if (!jwtUserId.equals(userId)) throw new BaseException(INVALID_USER_JWT);
 
         userService.deleteUser(userId);
 
@@ -189,9 +202,19 @@ public class UserController {
      */
     @ResponseBody
     @PostMapping("/logIn")
+    @Operation(summary = "로그인", description = "로그인 ID와 비밀번호로 로그인합니다")
     public BaseResponse<PostLoginRes> logIn(@RequestBody PostLoginReq postLoginReq){
-        // TODO: 로그인 값들에 대한 형식적인 validatin 처리해주셔야합니다!
-        // TODO: 유저의 status ex) 비활성화된 유저, 탈퇴한 유저 등을 관리해주고 있다면 해당 부분에 대한 validation 처리도 해주셔야합니다.
+        String loginId = trimOrNull(postLoginReq.getLoginId());
+        String password = trimOrNull(postLoginReq.getPassword());
+
+        if (loginId == null || loginId.isEmpty()) throw new BaseException(POST_USERS_INVALID_LOGIN_ID);
+        if (!isRegexId(loginId)) throw new BaseException(POST_USERS_INVALID_LOGIN_ID);
+        if (password == null || password.isEmpty()) throw new BaseException(POST_USERS_INVALID_PASSWORD);
+        if (password.length() < 6 || password.length() > 20) throw new BaseException(POST_USERS_INVALID_PASSWORD);
+
+        postLoginReq.setLoginId(loginId);
+        postLoginReq.setPassword(password);
+
         PostLoginRes postLoginRes = userService.logIn(postLoginReq);
         return new BaseResponse<>(postLoginRes);
     }
@@ -203,6 +226,7 @@ public class UserController {
      * @return void
      */
     @GetMapping("/auth/{socialLoginType}/login")
+    @Operation(summary = "소셜 로그인 리다이렉트", description = "소셜 로그인 페이지로 리다이렉트합니다")
     public void socialLoginRedirect(@PathVariable(name="socialLoginType") String SocialLoginPath) throws IOException {
         SocialLoginType socialLoginType= SocialLoginType.valueOf(SocialLoginPath.toUpperCase());
         oAuthService.accessRequest(socialLoginType);
@@ -217,6 +241,7 @@ public class UserController {
      */
     @ResponseBody
     @GetMapping(value = "/auth/{socialLoginType}/login/callback")
+    @Operation(summary = "소셜 로그인 콜백", description = "소셜 로그인 후 콜백을 처리합니다")
     public BaseResponse<GetSocialOAuthRes> socialLoginCallback(
             @PathVariable(name = "socialLoginType") String socialLoginPath,
             @RequestParam(name = "code") String code) throws IOException, BaseException{
@@ -225,6 +250,4 @@ public class UserController {
         GetSocialOAuthRes getSocialOAuthRes = oAuthService.oAuthLoginOrJoin(socialLoginType,code);
         return new BaseResponse<>(getSocialOAuthRes);
     }
-
-
 }

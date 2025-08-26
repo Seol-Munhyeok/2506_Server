@@ -15,7 +15,7 @@ public class ExceptionAdvice {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<BaseResponse<Object>> BaseExceptionHandle(BaseException exception) {
-        var status = exception.getStatus();
+        BaseResponseStatus status = exception.getStatus();
         log.warn("BaseException: code={}, message={}", status.getCode(), status.getMessage());
         return ResponseEntity
                 .status(status.getHttpStatus())
@@ -25,7 +25,7 @@ public class ExceptionAdvice {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BaseResponse<Object>> ExceptionHandle(Exception exception) {
         log.error("Unexpected exception", exception);
-        var status = BaseResponseStatus.UNEXPECTED_ERROR;
+        BaseResponseStatus status = BaseResponseStatus.UNEXPECTED_ERROR;
         return ResponseEntity
                 .status(status.getHttpStatus())
                 .body(new BaseResponse<>(status));

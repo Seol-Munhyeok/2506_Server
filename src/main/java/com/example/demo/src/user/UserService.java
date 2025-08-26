@@ -133,4 +133,9 @@ public class UserService {
     public boolean isLoginIdDuplicate(String loginId) {
         return userDataManager.findByLoginIdAndState(loginId, ACTIVE).isPresent();
     }
+
+    @Transactional(readOnly = true)
+    public boolean isEmailDuplicate(String email) {
+        return userDataManager.findByEmailAndState(email, ACTIVE).isPresent();
+    }
 }

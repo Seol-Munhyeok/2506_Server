@@ -48,8 +48,6 @@ public class UserController {
     @ResponseBody
     @PostMapping("")
     public ResponseEntity<BaseResponse<PostUserRes>> createUser(@RequestBody PostUserReq req) {
-
-        // 0) 입력 전처리 (공백 제거)
         String email   = trimOrNull(req.getEmail());
         String loginId = trimOrNull(req.getLoginId());
         String phone   = trimOrNull(req.getPhoneNumber());
@@ -111,7 +109,7 @@ public class UserController {
         // 9) 저장
         PostUserRes res = userService.createUser(req);
 
-        // 회원가입 성공 → 201 Created 권장
+        // 회원가입 성공
         return ResponseEntity.status(HttpStatus.CREATED).body(new BaseResponse<>(res));
     }
 

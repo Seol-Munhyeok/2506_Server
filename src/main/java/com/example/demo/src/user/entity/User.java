@@ -105,6 +105,7 @@ public class User extends BaseEntity {
 
     public void deleteUser() {
         this.state = State.INACTIVE;
+        this.accountStatus = AccountStatus.WITHDRAWN;
     }
 
     public void withdrawPrivacyConsent() {

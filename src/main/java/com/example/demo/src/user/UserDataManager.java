@@ -2,6 +2,7 @@ package com.example.demo.src.user;
 
 import com.example.demo.src.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -27,12 +28,12 @@ public class UserDataManager {
         return userRepository.findByLoginIdAndState(loginId, state);
     }
 
-    public List<User> findAllByEmailAndState(String email, State state) {
-        return userRepository.findAllByEmailAndState(email, state);
+    public List<User> findAllByEmailAndState(String email, State state, Pageable pageable) {
+        return userRepository.findAllByEmailAndState(email, state, pageable);
     }
 
-    public List<User> findAllByState(State state) {
-        return userRepository.findAllByState(state);
+    public List<User> findAllByState(State state, Pageable pageable) {
+        return userRepository.findAllByState(state, pageable);
     }
 
     public List<User> findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(LocalDateTime date, boolean status) {

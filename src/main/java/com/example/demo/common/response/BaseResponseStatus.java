@@ -40,6 +40,9 @@ public enum BaseResponseStatus {
     USERS_EMPTY_LOGIN_TYPE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_LOGIN_TYPE_EMPTY", "로그인 타입을 입력해주세요."),
     POST_USERS_INVALID_LOGIN_TYPE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_LOGIN_TYPE_INVALID", "지원하지 않는 로그인 타입입니다."),
 
+    PAGINATION_PARAM_MISSING(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_PAGINATION_MISSING", "페이지네이션 정보가 누락되었습니다."),
+    PAGINATION_PARAM_INVALID(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_PAGINATION_INVALID", "페이지네이션 정보가 올바르지 않습니다."),
+
     EMPTY_JWT(false, HttpStatus.UNAUTHORIZED, "ERROR_AUTH_JWT_EMPTY", "JWT를 입력해주세요."),
     INVALID_JWT(false, HttpStatus.UNAUTHORIZED, "ERROR_AUTH_JWT_INVALID", "유효하지 않은 JWT입니다."),
     INVALID_USER_JWT(false, HttpStatus.FORBIDDEN, "ERROR_AUTH_JWT_FORBIDDEN", "권한이 없는 유저의 접근입니다."),

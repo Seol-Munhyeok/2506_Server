@@ -113,7 +113,9 @@ public class UserController {
         PostUserRes res = userService.createUser(req);
 
         // 회원가입 성공
-        return ResponseEntity.status(HttpStatus.CREATED).body(new BaseResponse<>(res));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("X-ACCESS-TOKEN", res.getJwt())
+                .body(new BaseResponse<>(res));
     }
 
     /**
@@ -127,14 +129,20 @@ public class UserController {
     @ResponseBody
     @GetMapping("") // (GET) 127.0.0.1:9000/app/users
     @Operation(summary = "회원 목록 조회", description = "전체 회원 또는 이메일로 회원을 조회합니다")
-    public BaseResponse<List<GetUserRes>> getUsers(@Parameter(description = "검색할 이메일") @RequestParam(required = false) String Email) {
+    public BaseResponse<List<GetUserRes>> getUsers(
+            @Parameter(description = "페이지 인덱스") @RequestParam(required = false) Integer pageIndex,
+            @Parameter(description = "페이지 크기") @RequestParam(required = false) Integer size,
+            @Parameter(description = "검색할 이메일") @RequestParam(required = false) String Email) {
+        if (pageIndex == null || size == null) throw new BaseException(PAGINATION_PARAM_MISSING);
+        if (pageIndex < 0 || size <= 0) throw new BaseException(PAGINATION_PARAM_INVALID);
+
         String email = trimOrNull(Email);
-        if(email == null){
-            List<GetUserRes> getUsersRes = userService.getUsers();
+        if (email == null) {
+            List<GetUserRes> getUsersRes = userService.getUsers(pageIndex, size);
             return new BaseResponse<>(getUsersRes);
         }
         if (!isRegexEmail(email)) throw new BaseException(POST_USERS_INVALID_EMAIL);
-        List<GetUserRes> getUsersRes = userService.getUsersByEmail(email);
+        List<GetUserRes> getUsersRes = userService.getUsersByEmail(email, pageIndex, size);
         return new BaseResponse<>(getUsersRes);
     }
 
@@ -178,20 +186,20 @@ public class UserController {
     }
 
     /**
-     * 유저정보삭제 API
-     * [DELETE] /app/users/:userId
+     * 유저 상태 업데이트 API
+     * [PATCH] /app/users/:userId/status
      * @return BaseResponse<String>
      */
     @ResponseBody
-    @DeleteMapping("/{userId}")
-    @Operation(summary = "회원 삭제", description = "userId로 회원을 비활성화합니다")
+    @PatchMapping("/{userId}/status")
+    @Operation(summary = "회원 상태 변경", description = "userId로 회원을 비활성화합니다")
     public BaseResponse<String> deleteUser(@PathVariable("userId") Long userId){
         Long jwtUserId = jwtService.getUserId();
         if (!jwtUserId.equals(userId)) throw new BaseException(INVALID_USER_JWT);
 
         userService.deleteUser(userId);
 
-        String result = "삭제 완료!!";
+        String result = "탈퇴 완료!!";
         return new BaseResponse<>(result);
     }
 
@@ -203,7 +211,7 @@ public class UserController {
     @ResponseBody
     @PostMapping("/logIn")
     @Operation(summary = "로그인", description = "로그인 ID와 비밀번호로 로그인합니다")
-    public BaseResponse<PostLoginRes> logIn(@RequestBody PostLoginReq postLoginReq){
+    public ResponseEntity<BaseResponse<PostLoginRes>> logIn(@RequestBody PostLoginReq postLoginReq){
         String loginId = trimOrNull(postLoginReq.getLoginId());
         String password = trimOrNull(postLoginReq.getPassword());
 
@@ -216,7 +224,9 @@ public class UserController {
         postLoginReq.setPassword(password);
 
         PostLoginRes postLoginRes = userService.logIn(postLoginReq);
-        return new BaseResponse<>(postLoginRes);
+        return ResponseEntity.ok()
+                .header("X-ACCESS-TOKEN", postLoginRes.getJwt())
+                .body(new BaseResponse<>(postLoginRes));
     }
 
 

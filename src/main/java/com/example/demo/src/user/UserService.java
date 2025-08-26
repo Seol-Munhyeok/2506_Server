@@ -9,6 +9,7 @@ import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
 import com.example.demo.utils.SHA256;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +52,9 @@ public class UserService {
         }
 
         User saveUser = userDataManager.save(postUserReq.toEntity());
-        return new PostUserRes(saveUser.getId());
+
+        String jwtToken = jwtService.createJwt(saveUser.getId());
+        return new PostUserRes(saveUser.getId(), jwtToken);
     }
 
     public PostUserRes createOAuthUser(User user) {
@@ -75,15 +78,17 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetUserRes> getUsers() {
-        return userDataManager.findAllByState(ACTIVE).stream()
+    public List<GetUserRes> getUsers(int pageIndex, int size) {
+        PageRequest pageRequest = PageRequest.of(pageIndex, size);
+        return userDataManager.findAllByState(ACTIVE, pageRequest).stream()
                 .map(GetUserRes::new)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<GetUserRes> getUsersByEmail(String email) {
-        return userDataManager.findAllByEmailAndState(email, ACTIVE).stream()
+    public List<GetUserRes> getUsersByEmail(String email, int pageIndex, int size) {
+        PageRequest pageRequest = PageRequest.of(pageIndex, size);
+        return userDataManager.findAllByEmailAndState(email, ACTIVE, pageRequest).stream()
                 .map(GetUserRes::new)
                 .collect(Collectors.toList());
     }

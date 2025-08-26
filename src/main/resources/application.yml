@@ -14,7 +14,7 @@ spring:
     init:
       platform: mysql
   datasource:
-    url: jdbc:mysql://localhost:3306/demo?autoReconnect=true&setTimezone=Asia/Seoul # 변경해주세요
+    url: jdbc:mysql://localhost:3306/demo?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false
     username: # username
     password: # password
     driver-class-name: com.mysql.cj.jdbc.Driver # mysql 8버전
@@ -54,10 +54,15 @@ spring:
   config:
     activate:
       on-profile: "prod"
+  datasource:
+    url: jdbc:mysql://database-1.cbwu2q6ia5nt.ap-northeast-2.rds.amazonaws.com:3306/demo?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false
+    username: ${DB_USERNAME:admin}  # 환경변수 사용
+    password: ${DB_PASSWORD}        # 환경변수 사용 (필수)
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
       # create, update, create-drop, none 등의 옵션이 있습니다.
       # create: 기존테이블 삭제 후 다시 생성
       # update: 변경된 부분만 반영
@@ -72,6 +77,8 @@ spring:
     properties:
       hibernate:
         format_sql: false
+        jdbc:
+          time_zone: Asia/Seoul
 
 ---
 spring:

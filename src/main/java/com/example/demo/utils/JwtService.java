@@ -32,7 +32,7 @@ public class JwtService {
         Date now = new Date();
         return Jwts.builder()
                 .setHeaderParam("type","jwt")
-                .claim("userIdx",userId)
+                .claim("userId",userId)
                 .setIssuedAt(now)
                 .setExpiration(new Date(System.currentTimeMillis()+1*(1000*60*60*24*365)))
                 .signWith(SignatureAlgorithm.HS256, JWT_SECRET_KEY)
@@ -70,8 +70,15 @@ public class JwtService {
             throw new BaseException(INVALID_JWT);
         }
 
-        // 3. userIdx 추출
-        return claims.getBody().get("userId",Long.class);
+        // 3. userId 추출
+        Number userId = claims.getBody().get("userId", Number.class);
+        if (userId == null) {
+            userId = claims.getBody().get("userIdx", Number.class);
+        }
+        if (userId == null) {
+            throw new BaseException(INVALID_JWT);
+        }
+        return userId.longValue();
     }
 
 }

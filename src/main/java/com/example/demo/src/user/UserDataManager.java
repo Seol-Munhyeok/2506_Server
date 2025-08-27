@@ -53,10 +53,10 @@ public class UserDataManager {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("name"), name));
         }
         if (joinedStart != null) {
-            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("joinedStart"), joinedStart));
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("joinedAt"), joinedStart));
         }
         if (joinedEnd != null) {
-            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("joinedEnd"), joinedEnd));
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("joinedAt"), joinedEnd));
         }
         if (status != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("accountStatus"), status));

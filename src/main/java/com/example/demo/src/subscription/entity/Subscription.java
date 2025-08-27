@@ -30,16 +30,16 @@ public class Subscription extends BaseEntity {
     @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY)
     private List<Payment> payments = new ArrayList<>();
 
-    @Column(name = "start_date", nullable = false)
+    @Column(name = "start_date", nullable = false, updatable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date")
+    @Column(name = "end_date", updatable = false)
     private LocalDate endDate;
 
     @Column(length = 20, nullable = false)
     private SubscriptionStatus status;
 
-    @Column(name = "payment_date", columnDefinition = "TIMESTAMP")
+    @Column(name = "payment_date", columnDefinition = "TIMESTAMP", updatable = false)
     private LocalDateTime paymentDate;
 
     @Builder
@@ -51,5 +51,35 @@ public class Subscription extends BaseEntity {
         this.endDate = endDate;
         this.status = status;
         this.paymentDate = paymentDate;
+    }
+
+    public Subscription activate(LocalDate startDate, LocalDate endDate, LocalDateTime paymentDate) {
+        return Subscription.builder()
+                .user(this.user)
+                .startDate(startDate)
+                .endDate(endDate)
+                .status(SubscriptionStatus.ACTIVE)
+                .paymentDate(paymentDate)
+                .build();
+    }
+
+    public Subscription cancel(LocalDate endDate) {
+        return Subscription.builder()
+                .user(this.user)
+                .startDate(this.startDate)
+                .endDate(endDate)
+                .status(SubscriptionStatus.CANCELED)
+                .paymentDate(this.paymentDate)
+                .build();
+    }
+
+    public Subscription expire(LocalDate endDate) {
+        return Subscription.builder()
+                .user(this.user)
+                .startDate(startDate)
+                .endDate(endDate)
+                .status(SubscriptionStatus.EXPIRED)
+                .paymentDate(this.paymentDate)
+                .build();
     }
 }

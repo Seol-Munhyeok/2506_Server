@@ -8,12 +8,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-//구글(서드파티)로 액세스 토큰을 보내 받아올 구글에 등록된 사용자 정보
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GoogleUser {
+public class AppleUser {
     public String id;
     public String email;
     public Boolean verifiedEmail;
@@ -35,7 +34,7 @@ public class GoogleUser {
                 .privacyConsentStatus(true)
                 .locationServiceAgreed(true)
                 .accountStatus(AccountStatus.ACTIVE)
-                .loginType(LoginType.GOOGLE)
+                .loginType(LoginType.APPLE)
                 .privacyConsentStatus(true)
                 .joinedAt(java.time.LocalDateTime.now())
                 .privacyConsentDate(java.time.LocalDateTime.now())

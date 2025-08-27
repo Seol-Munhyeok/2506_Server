@@ -14,7 +14,7 @@ spring:
     init:
       platform: mysql
   datasource:
-    url: jdbc:mysql://localhost:3306/demo?autoReconnect=true&setTimezone=Asia/Seoul # 변경해주세요
+    url: jdbc:mysql://localhost:3306/demo?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false
     username: # username
     password: # password
     driver-class-name: com.mysql.cj.jdbc.Driver # mysql 8버전
@@ -26,7 +26,24 @@ spring:
       client-secret:  # client-secret
       callback-login-url: http://localhost:9000/app/users/auth/google/login/callback # 등록한 정보에 맞게 수정해주세요
       scope: https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile # 등록한 정보에 맞게 수정해주세요
-
+    kakao:
+      url: https://kauth.kakao.com/oauth/authorize
+      client-id: # client-id
+      client-secret: # client-secret
+      callback-login-url: http://localhost:9000/app/users/auth/kakao/login/callback  # 등록한 정보에 맞게 수정 예정
+      scope: profile
+    naver:
+      url: https://nid.naver.com/oauth2.0/authorize
+      client-id: # client-id
+      client-secret: # client-secret
+      callback-login-url: http://localhost:9000/app/users/auth/naver/login/callback
+      scope: profile
+    apple:
+      url: https://appleid.apple.com/auth/authorize
+      client-id: # client-id
+      client-secret: # client-secret
+      callback-login-url: http://localhost:9000/app/users/auth/apple/login/callback
+      scope: name email
 spring.sql.init.platform: mysql
 server:
   port: 9000
@@ -47,17 +64,22 @@ springdoc:
     - /**
 
 jwt:
-  secret-key: UwKYibQQgkW7g-*k.ap9kje-wxBHb9wdXoBT4vnt4P3sJWt-Nu  # JWT key. 수정해주세요
+  secret-key: ${JWT_SECRET}
 
 ---
 spring:
   config:
     activate:
       on-profile: "prod"
+  datasource:
+    url: jdbc:mysql://database-1.cbwu2q6ia5nt.ap-northeast-2.rds.amazonaws.com:3306/demo?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&useSSL=false
+    username: ${DB_USERNAME:admin}  # 환경변수 사용
+    password: ${DB_PASSWORD}        # 환경변수 사용 (필수)
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
       # create, update, create-drop, none 등의 옵션이 있습니다.
       # create: 기존테이블 삭제 후 다시 생성
       # update: 변경된 부분만 반영
@@ -72,14 +94,22 @@ spring:
     properties:
       hibernate:
         format_sql: false
+        jdbc:
+          time_zone: Asia/Seoul
 
 ---
 spring:
   config:
     activate:
       on-profile: "dev"
+
+  datasource:
+    url: jdbc:mariadb://localhost:3306/server_2506?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: 1234
+    driver-class-name: org.mariadb.jdbc.Driver
   jpa:
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    database-platform: org.hibernate.dialect.MariaDBDialect
     hibernate:
       ddl-auto: create-drop
       naming:

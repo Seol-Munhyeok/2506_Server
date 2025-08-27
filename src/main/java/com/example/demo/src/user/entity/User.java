@@ -4,38 +4,100 @@ import com.example.demo.common.entity.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
 @Getter
 @Entity // 필수, Class 를 Database Table화 해주는 것이다
-@Table(name = "USER") // Table 이름을 명시해주지 않으면 class 이름을 Table 이름으로 대체한다.
+@Table(name = "users") // Table 이름을 명시해주지 않으면 class 이름을 Table 이름으로 대체한다.
 public class User extends BaseEntity {
 
     @Id // PK를 의미하는 어노테이션
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "user_id", nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String email;
+    @Column(name = "login_id", length = 20, nullable = false, unique = true)
+    private String loginId;
 
-    @Column(nullable = false)
-    private String password;
-
-    @Column(nullable = false, length = 30)
+    @Column(name = "user_name", length = 20)
     private String name;
 
-    @Column(nullable = false)
-    private boolean isOAuth;
+    @Column(name = "password_hash", length = 255)
+    private String password;
+
+    @Column(length = 255)
+    private String email;
+
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
+
+    @Column(name = "terms_agreed", nullable = false)
+    private boolean termsOfServiceAgreed;
+
+    @Column(name = "privacy_consent_status", length = 20, nullable = false)
+    private boolean privacyConsentStatus;
+
+    @Column(name = "location_agreed", nullable = false)
+    private boolean locationServiceAgreed;
+
+
+    @Column(name = "joined_at", nullable = false, columnDefinition = "TIMESTAMP")
+    private LocalDateTime joinedAt;
+
+    @Setter
+    @Column(name = "last_login_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime lastLoginAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status", length = 20, nullable = false)
+    private AccountStatus accountStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "login_type", length = 20, nullable = false)
+    private LoginType loginType;
+
+
+
+    @Column(name = "privacy_consent_date", columnDefinition = "TIMESTAMP")
+    private LocalDateTime privacyConsentDate;
 
     @Builder
-    public User(Long id, String email, String password, String name, boolean isOAuth) {
+    public User(Long id,
+                String loginId,
+                String name,
+                String password,
+                String email,
+                String phoneNumber,
+                LocalDate birthDate,
+                boolean termsOfServiceAgreed,
+                boolean privacyConsentStatus,
+                boolean locationServiceAgreed,
+                LocalDateTime joinedAt,
+                LocalDateTime lastLoginAt,
+                AccountStatus accountStatus,
+                LoginType loginType,
+                LocalDateTime privacyConsentDate) {
         this.id = id;
-        this.email = email;
-        this.password = password;
+        this.loginId = loginId;
         this.name = name;
-        this.isOAuth = isOAuth;
+        this.password = password;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.birthDate = birthDate;
+        this.termsOfServiceAgreed = termsOfServiceAgreed;
+        this.privacyConsentStatus = privacyConsentStatus;
+        this.locationServiceAgreed = locationServiceAgreed;
+        this.joinedAt = joinedAt;
+        this.lastLoginAt = lastLoginAt;
+        this.accountStatus = accountStatus;
+        this.loginType = loginType;
+        this.privacyConsentDate = privacyConsentDate;
     }
 
     public void updateName(String name) {
@@ -44,6 +106,15 @@ public class User extends BaseEntity {
 
     public void deleteUser() {
         this.state = State.INACTIVE;
+        this.accountStatus = AccountStatus.WITHDRAWN;
     }
 
+    public void suspendUser() {
+        this.accountStatus = AccountStatus.SUSPENDED;
+    }
+
+    public void withdrawPrivacyConsent() {
+        this.privacyConsentStatus = false;
+        this.privacyConsentDate = null;
+    }
 }

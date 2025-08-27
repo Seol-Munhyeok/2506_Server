@@ -9,7 +9,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostLoginReq {
-    private String loginId;
-    private String password;
+public class NaverOAuthToken {
+    private String access_token;
+    private int expires_in;
+    private String scope;
+    private String token_type;
+    private String id_token;
 }

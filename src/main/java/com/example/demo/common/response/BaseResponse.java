@@ -10,29 +10,31 @@ import static com.example.demo.common.response.BaseResponseStatus.SUCCESS;
 
 @Getter
 @AllArgsConstructor
-@JsonPropertyOrder({"isSuccess", "code", "message", "result"})
+@JsonPropertyOrder({"success", "code", "message", "result"})
 public class BaseResponse<T> {
-    @JsonProperty("isSuccess")
-    private final Boolean isSuccess;
-    private final String message;
-    private final int code;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private T result;
+    @JsonProperty("success")
+    private final boolean success;
 
-    // 요청에 성공한 경우
+    private final String code;
+    private final String message;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final T result;
+
+    /** 성공 응답 */
     public BaseResponse(T result) {
-        this.isSuccess = SUCCESS.isSuccess();
-        this.message = SUCCESS.getMessage();
-        this.code = SUCCESS.getCode();
+        this.success = SUCCESS.isSuccess();
+        this.code = SUCCESS.getCode();         // "SUCCESS"
+        this.message = SUCCESS.getMessage();   // "요청에 성공하였습니다."
         this.result = result;
     }
 
-    // 요청에 실패한 경우
+    /** 실패 응답 */
     public BaseResponse(BaseResponseStatus status) {
-        this.isSuccess = status.isSuccess();
+        this.success = status.isSuccess();
+        this.code = status.getCode();          // 문자열 식별자
         this.message = status.getMessage();
-        this.code = status.getCode();
+        this.result = null;
     }
-
 }
 

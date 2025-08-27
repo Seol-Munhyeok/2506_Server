@@ -5,6 +5,7 @@ package com.example.demo.src.user;
 import com.example.demo.common.entity.BaseEntity.State;
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.src.user.entity.AccountStatus;
+import com.example.demo.src.user.entity.LoginType;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
@@ -132,6 +133,10 @@ public class UserService {
         User user = userDataManager.findByLoginIdAndState(postLoginReq.getLoginId(), ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
 
+        if (user.getLoginType() != LoginType.LOCAL) {
+            throw new BaseException(POST_USERS_INVALID_LOGIN_TYPE);
+        }
+
         switch (user.getAccountStatus()) {
             case DORMANT: throw new BaseException(DORMANT_USER);
             case BLOCKED: throw new BaseException(BLOCKED_USER);
@@ -161,6 +166,11 @@ public class UserService {
     public GetUserRes getUserByEmail(String email) {
         User user = userDataManager.findByEmailAndState(email, ACTIVE).orElseThrow(() -> new BaseException(NOT_FIND_USER));
         return new GetUserRes(user);
+    }
+
+    @Transactional(readOnly = true)
+    public User getUserEntityByEmail(String email) {
+        return userDataManager.findByEmailAndState(email, ACTIVE).orElseThrow(() -> new BaseException(NOT_FIND_USER));
     }
 
     @Transactional(readOnly = true)

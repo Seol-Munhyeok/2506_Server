@@ -26,7 +26,24 @@ spring:
       client-secret:  # client-secret
       callback-login-url: http://localhost:9000/app/users/auth/google/login/callback # 등록한 정보에 맞게 수정해주세요
       scope: https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile # 등록한 정보에 맞게 수정해주세요
-
+    kakao:
+      url: https://kauth.kakao.com/oauth/authorize
+      client-id: # client-id
+      client-secret: # client-secret
+      callback-login-url: http://localhost:9000/app/users/auth/kakao/login/callback  # 등록한 정보에 맞게 수정 예정
+      scope: profile
+    naver:
+      url: https://nid.naver.com/oauth2.0/authorize
+      client-id: # client-id
+      client-secret: # client-secret
+      callback-login-url: http://localhost:9000/app/users/auth/naver/login/callback
+      scope: profile
+    apple:
+      url: https://appleid.apple.com/auth/authorize
+      client-id: # client-id
+      client-secret: # client-secret
+      callback-login-url: http://localhost:9000/app/users/auth/apple/login/callback
+      scope: name email
 spring.sql.init.platform: mysql
 server:
   port: 9000

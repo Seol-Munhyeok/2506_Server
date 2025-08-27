@@ -68,13 +68,13 @@ public enum BaseResponseStatus {
     UNEXPECTED_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_SERVER_UNEXPECTED", "예상치 못한 에러가 발생했습니다.");
 
 
-    private final boolean isSuccess;
+    private final boolean success;
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;
 
-    BaseResponseStatus(boolean isSuccess, HttpStatus httpStatus, String code, String message) {
-        this.isSuccess = isSuccess;
+    BaseResponseStatus(boolean success, HttpStatus httpStatus, String code, String message) {
+        this.success = success;
         this.httpStatus = httpStatus;
         this.code = code;
         this.message = message;

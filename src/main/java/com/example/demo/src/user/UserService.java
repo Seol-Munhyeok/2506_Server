@@ -88,9 +88,15 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<GetUserRes> getUsersByEmail(String email, int pageIndex, int size) {
         PageRequest pageRequest = PageRequest.of(pageIndex, size);
-        return userDataManager.findAllByEmailAndState(email, ACTIVE, pageRequest).stream()
+        List<GetUserRes> users = userDataManager.findAllByEmailAndState(email, ACTIVE, pageRequest)
+                .stream()
                 .map(GetUserRes::new)
                 .collect(Collectors.toList());
+        if (users.isEmpty()) {
+            throw new BaseException(NOT_FIND_USER);
+        }
+
+        return users;
     }
 
 

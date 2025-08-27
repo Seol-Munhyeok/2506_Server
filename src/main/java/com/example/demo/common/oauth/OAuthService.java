@@ -17,6 +17,7 @@ import java.io.IOException;
 import static com.example.demo.common.response.BaseResponseStatus.BLOCKED_USER;
 import static com.example.demo.common.response.BaseResponseStatus.DORMANT_USER;
 import static com.example.demo.common.response.BaseResponseStatus.INVALID_OAUTH_TYPE;
+import static com.example.demo.common.response.BaseResponseStatus.POST_USERS_INVALID_LOGIN_TYPE;
 import static com.example.demo.common.response.BaseResponseStatus.SUSPENDED_USER;
 import static com.example.demo.common.response.BaseResponseStatus.WITHDRAWN_USER;
 
@@ -59,38 +60,43 @@ public class OAuthService {
                 GoogleOAuthToken oAuthToken = googleOauth.getAccessToken(accessTokenResponse);
                 ResponseEntity<String> userInfoResponse = googleOauth.requestUserInfo(oAuthToken);
                 GoogleUser googleUser = googleOauth.getUserInfo(userInfoResponse);
-                return loginOrJoin(googleUser.getEmail(), googleUser.toEntity(), oAuthToken.getAccess_token(), oAuthToken.getToken_type());
+                return loginOrJoin(googleUser.getEmail(), googleUser.toEntity(), oAuthToken.getAccess_token(), oAuthToken.getToken_type(), socialLoginType);
             }
             case KAKAO: {
                 ResponseEntity<String> accessTokenResponse = kakaoOauth.requestAccessToken(code);
                 KakaoOAuthToken oAuthToken = kakaoOauth.getAccessToken(accessTokenResponse);
                 ResponseEntity<String> userInfoResponse = kakaoOauth.requestUserInfo(oAuthToken);
                 KakaoUser kakaoUser = kakaoOauth.getUserInfo(userInfoResponse);
-                return loginOrJoin(kakaoUser.getEmail(), kakaoUser.toEntity(), oAuthToken.getAccess_token(), oAuthToken.getToken_type());
+                return loginOrJoin(kakaoUser.getEmail(), kakaoUser.toEntity(), oAuthToken.getAccess_token(), oAuthToken.getToken_type(), socialLoginType);
             }
             case NAVER: {
                 ResponseEntity<String> accessTokenResponse = naverOauth.requestAccessToken(code);
                 NaverOAuthToken oAuthToken = naverOauth.getAccessToken(accessTokenResponse);
                 ResponseEntity<String> userInfoResponse = naverOauth.requestUserInfo(oAuthToken);
                 NaverUser naverUser = naverOauth.getUserInfo(userInfoResponse);
-                return loginOrJoin(naverUser.getEmail(), naverUser.toEntity(), oAuthToken.getAccess_token(), oAuthToken.getToken_type());
+                return loginOrJoin(naverUser.getEmail(), naverUser.toEntity(), oAuthToken.getAccess_token(), oAuthToken.getToken_type(), socialLoginType);
             }
             case APPLE: {
                 ResponseEntity<String> accessTokenResponse = appleOauth.requestAccessToken(code);
                 AppleOAuthToken oAuthToken = appleOauth.getAccessToken(accessTokenResponse);
                 ResponseEntity<String> userInfoResponse = appleOauth.requestUserInfo(oAuthToken);
                 AppleUser appleUser = appleOauth.getUserInfo(userInfoResponse);
-                return loginOrJoin(appleUser.getEmail(), appleUser.toEntity(), oAuthToken.getAccess_token(), oAuthToken.getToken_type());
+                return loginOrJoin(appleUser.getEmail(), appleUser.toEntity(), oAuthToken.getAccess_token(), oAuthToken.getToken_type(), socialLoginType);
             }
             default:
                 throw new BaseException(INVALID_OAUTH_TYPE);
         }
     }
 
-    private GetSocialOAuthRes loginOrJoin(String email, User userEntity, String accessToken, String tokenType) {
+    private GetSocialOAuthRes loginOrJoin(String email, User userEntity, String accessToken, String tokenType, Constant.SocialLoginType socialLoginType) {
         if (userService.checkUserByEmail(email)) {
             GetUserRes getUserRes = userService.getUserByEmail(email);
+
+            if (getUserRes.getLoginType() != null && !getUserRes.getLoginType().equals(socialLoginType.name())) {
+                throw new BaseException(POST_USERS_INVALID_LOGIN_TYPE);
+            }
             validateAccountStatus(getUserRes);
+
             String jwtToken = jwtService.createJwt(getUserRes.getId());
             return new GetSocialOAuthRes(jwtToken, getUserRes.getId(), accessToken, tokenType);
         } else {

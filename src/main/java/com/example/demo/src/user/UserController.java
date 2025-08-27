@@ -4,6 +4,7 @@ package com.example.demo.src.user;
 import com.example.demo.common.Constant.SocialLoginType;
 import com.example.demo.common.oauth.OAuthService;
 import com.example.demo.src.log.entity.Log;
+import com.example.demo.src.user.entity.AccountStatus;
 import com.example.demo.src.user.entity.LoginType;
 import com.example.demo.utils.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -121,8 +123,7 @@ public class UserController {
     /**
      * 회원 조회 API
      * [GET] /users
-     * 회원 번호 및 이메일 검색 조회 API
-     * [GET] /app/users? Email=
+     * 다양한 조건으로 회원을 검색합니다.
      * @return BaseResponse<List<GetUserRes>>
      */
     //Query String
@@ -132,17 +133,42 @@ public class UserController {
     public BaseResponse<List<GetUserRes>> getUsers(
             @Parameter(description = "페이지 인덱스") @RequestParam(required = false) Integer pageIndex,
             @Parameter(description = "페이지 크기") @RequestParam(required = false) Integer size,
-            @Parameter(description = "검색할 이메일") @RequestParam(required = false) String Email) {
+            @Parameter(description = "검색할 유저 ID") @RequestParam(required = false) Long userId,
+            @Parameter(description = "검색할 이름") @RequestParam(required = false) String name,
+            @Parameter(description = "가입 시작일(yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) String joinedStart,
+            @Parameter(description = "가입 종료일(yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) String joinedEnd,
+            @Parameter(description = "계정 상태") @RequestParam(required = false) String accountStatus) {
         if (pageIndex == null || size == null) throw new BaseException(PAGINATION_PARAM_MISSING);
         if (pageIndex < 0 || size <= 0) throw new BaseException(PAGINATION_PARAM_INVALID);
 
-        String email = trimOrNull(Email);
-        if (email == null) {
-            List<GetUserRes> getUsersRes = userService.getUsers(pageIndex, size);
-            return new BaseResponse<>(getUsersRes);
+        String trimmedName = trimOrNull(name);
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+        if (joinedStart != null) {
+            try {
+                start = LocalDateTime.parse(joinedStart);
+            } catch (Exception e) {
+                throw new BaseException(RESPONSE_ERROR);
+            }
         }
-        if (!isRegexEmail(email)) throw new BaseException(POST_USERS_INVALID_EMAIL);
-        List<GetUserRes> getUsersRes = userService.getUsersByEmail(email, pageIndex, size);
+        if (joinedEnd != null) {
+            try {
+                end = LocalDateTime.parse(joinedEnd);
+            } catch (Exception e) {
+                throw new BaseException(RESPONSE_ERROR);
+            }
+        }
+
+        AccountStatus status = null;
+        if (accountStatus != null) {
+            try {
+                status = AccountStatus.valueOf(accountStatus.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new BaseException(RESPONSE_ERROR);
+            }
+        }
+
+        List<GetUserRes> getUsersRes = userService.getUsers(userId, trimmedName, start, end, status, pageIndex, size);
         return new BaseResponse<>(getUsersRes);
     }
 
@@ -186,20 +212,20 @@ public class UserController {
     }
 
     /**
-     * 유저 상태 업데이트 API
-     * [PATCH] /app/users/:userId/status
+     * 회원 정지 API
+     * [PATCH] /app/users/:userId/suspend
      * @return BaseResponse<String>
      */
     @ResponseBody
-    @PatchMapping("/{userId}/status")
-    @Operation(summary = "회원 상태 변경", description = "userId로 회원을 비활성화합니다")
-    public BaseResponse<String> deleteUser(@PathVariable("userId") Long userId){
-        Long jwtUserId = jwtService.getUserId();
-        if (!jwtUserId.equals(userId)) throw new BaseException(INVALID_USER_JWT);
+    @PatchMapping("/{userId}/suspend")
+    @Operation(summary = "회원 정지", description = "관리자가 회원을 정지합니다")
+    public BaseResponse<String> suspendUser(@PathVariable("userId") Long userId) {
+        Long adminId = jwtService.getUserId();
+        if (!userService.isAdmin(adminId)) throw new BaseException(INVALID_USER_JWT);
 
-        userService.deleteUser(userId);
+        userService.suspendUser(userId);
 
-        String result = "탈퇴 완료!!";
+        String result = "정지 완료!!";
         return new BaseResponse<>(result);
     }
 

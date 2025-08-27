@@ -50,6 +50,7 @@ public class User extends BaseEntity {
     @Column(name = "joined_at", nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime joinedAt;
 
+    @Setter
     @Column(name = "last_login_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime lastLoginAt;
 
@@ -106,6 +107,10 @@ public class User extends BaseEntity {
     public void deleteUser() {
         this.state = State.INACTIVE;
         this.accountStatus = AccountStatus.WITHDRAWN;
+    }
+
+    public void suspendUser() {
+        this.accountStatus = AccountStatus.SUSPENDED;
     }
 
     public void withdrawPrivacyConsent() {

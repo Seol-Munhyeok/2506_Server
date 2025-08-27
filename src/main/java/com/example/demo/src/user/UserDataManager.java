@@ -1,8 +1,10 @@
 package com.example.demo.src.user;
 
+import com.example.demo.src.user.entity.AccountStatus;
 import com.example.demo.src.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -38,6 +40,29 @@ public class UserDataManager {
 
     public List<User> findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(LocalDateTime date, boolean status) {
         return userRepository.findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(date, status);
+    }
+
+    public List<User> searchUsers(Long userId, String name, LocalDateTime joinedStart, LocalDateTime joinedEnd,
+                                  AccountStatus status, Pageable pageable) {
+        Specification<User> spec = Specification.where((root, query, cb) -> cb.equal(root.get("state"), State.ACTIVE));
+
+        if (userId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("id"), userId));
+        }
+        if (name != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("name"), name));
+        }
+        if (joinedStart != null) {
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("joinedStart"), joinedStart));
+        }
+        if (joinedEnd != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("joinedEnd"), joinedEnd));
+        }
+        if (status != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("accountStatus"), status));
+        }
+
+        return userRepository.findAll(spec, pageable).getContent();
     }
 
     public User save(User user) {

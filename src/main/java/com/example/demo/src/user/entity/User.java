@@ -62,7 +62,9 @@ public class User extends BaseEntity {
     @Column(name = "login_type", length = 20, nullable = false)
     private LoginType loginType;
 
-
+    @Setter
+    @Column(name = "subscription_active", nullable = false)
+    private boolean subscriptionActive = false;
 
     @Column(name = "privacy_consent_date", columnDefinition = "TIMESTAMP")
     private LocalDateTime privacyConsentDate;
@@ -82,7 +84,8 @@ public class User extends BaseEntity {
                 LocalDateTime lastLoginAt,
                 AccountStatus accountStatus,
                 LoginType loginType,
-                LocalDateTime privacyConsentDate) {
+                LocalDateTime privacyConsentDate,
+                boolean subscriptionActive) {
         this.id = id;
         this.loginId = loginId;
         this.name = name;
@@ -98,6 +101,7 @@ public class User extends BaseEntity {
         this.accountStatus = accountStatus;
         this.loginType = loginType;
         this.privacyConsentDate = privacyConsentDate;
+        this.subscriptionActive = subscriptionActive;
     }
 
     public void updateName(String name) {
@@ -116,5 +120,13 @@ public class User extends BaseEntity {
     public void withdrawPrivacyConsent() {
         this.privacyConsentStatus = false;
         this.privacyConsentDate = null;
+    }
+
+    public void activateSubscription() {
+        this.subscriptionActive = true;
+    }
+
+    public void cancelSubscription() {
+        this.subscriptionActive = false;
     }
 }

@@ -42,6 +42,7 @@ public class PostUserReq {
                 .privacyConsentStatus(true)
                 .privacyConsentDate(LocalDateTime.now())
                 .joinedAt(LocalDateTime.now())
+                .subscriptionActive(false)
                 .build();
     }
 }

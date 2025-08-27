@@ -54,6 +54,7 @@ public class Subscription extends BaseEntity {
     }
 
     public Subscription activate(LocalDate startDate, LocalDate endDate, LocalDateTime paymentDate) {
+        this.user.activateSubscription();
         return Subscription.builder()
                 .user(this.user)
                 .startDate(startDate)
@@ -64,6 +65,7 @@ public class Subscription extends BaseEntity {
     }
 
     public Subscription cancel(LocalDate endDate) {
+        this.user.cancelSubscription();
         return Subscription.builder()
                 .user(this.user)
                 .startDate(this.startDate)
@@ -74,6 +76,7 @@ public class Subscription extends BaseEntity {
     }
 
     public Subscription expire(LocalDate endDate) {
+        this.user.cancelSubscription();
         return Subscription.builder()
                 .user(this.user)
                 .startDate(startDate)

@@ -82,11 +82,19 @@ public class PaymentController {
     @PostMapping("/payments/verify")
     public BaseResponse<VerifyPaymentRes> verify(@RequestBody VerifyPaymentReq req) {
         User user = getCurrentUser();
-        Subscription subscription = getOrCreatePendingSubscription(user);
+        Subscription subscription = getLatestSubscription(user);
 
         if (subscription == null) {
             VerifyPaymentRes res = VerifyPaymentRes.builder()
                     .status("NOT_SUBSCRIBED")
+                    .build();
+            return new BaseResponse<>(res);
+        }
+
+        if (subscription.getStatus() != SubscriptionStatus.PENDING) {
+            VerifyPaymentRes res = VerifyPaymentRes.builder()
+                    .status("SUBSCRIPTION_STATUS_MISMATCH")
+                    .failReason("구독 상태는 PENDING 이어야 합니다.")
                     .build();
             return new BaseResponse<>(res);
         }

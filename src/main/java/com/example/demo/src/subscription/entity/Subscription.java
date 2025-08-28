@@ -63,7 +63,7 @@ public class Subscription extends BaseEntity {
     }
 
     public Subscription cancelPending() {
-        this.user.activateSubscription();
+        this.user.cancelSubscription();
         this.status = SubscriptionStatus.CANCELED;
         this.state = State.INACTIVE;
         return this;
@@ -71,6 +71,7 @@ public class Subscription extends BaseEntity {
 
     public Subscription cancel(LocalDate endDate) {
         this.user.cancelSubscription();
+        this.state = State.INACTIVE;
         return Subscription.builder()
                 .user(this.user)
                 .startDate(this.startDate)

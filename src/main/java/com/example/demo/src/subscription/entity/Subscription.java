@@ -62,6 +62,13 @@ public class Subscription extends BaseEntity {
         return this;
     }
 
+    public Subscription cancelPending() {
+        this.user.activateSubscription();
+        this.status = SubscriptionStatus.CANCELED;
+        this.state = State.INACTIVE;
+        return this;
+    }
+
     public Subscription cancel(LocalDate endDate) {
         this.user.cancelSubscription();
         return Subscription.builder()

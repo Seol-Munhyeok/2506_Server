@@ -95,17 +95,18 @@ public class PaymentController {
                 req.getImpUid(), req.getMerchantUid(), user, subscription
         );
 
-        // 결제 성공 시 사용자 구독 활성화
         if (payment.getStatus().name().equals("PAID")) {
             subscription.activate(
                     LocalDate.now(),
                     LocalDate.now().plusMonths(1),
                     LocalDateTime.now()
             );
-            userRepository.save(user);
-            subscriptionRepository.save(subscription);
-            paymentGatewayService.linkPaymentToSubscription(payment, subscription);
+        } else {
+            subscription.cancelPending();
         }
+        userRepository.save(user);
+        subscriptionRepository.save(subscription);
+        paymentGatewayService.linkPaymentToSubscription(payment, subscription);
 
         VerifyPaymentRes res = VerifyPaymentRes.builder()
                 .status(payment.getStatus().name())

@@ -9,8 +9,8 @@ import java.time.LocalDate;
 @Builder
 public class SubscriptionStatusRes {
     private boolean active;
-    private String status;      // ACTIVE / CANCELED / EXPIRED / NONE
+    private String status;
     private LocalDate startDate;
-    private LocalDate endDate;  // nullable
+    private LocalDate endDate;
 }
 

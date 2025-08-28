@@ -98,6 +98,11 @@ public class PaymentGatewayService {
         paymentRepository.save(entity);
     }
 
+    public void linkPaymentToSubscription(Payment payment, Subscription subscription) {
+        payment.changeSubscription(subscription);
+        paymentRepository.save(payment);
+    }
+
     @Transactional
     public Payment verifyPayment(String impUid, String merchantUid,
                                  User user, Subscription subscription) {

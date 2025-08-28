@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 
 import static com.example.demo.common.entity.BaseEntity.State;
 import static com.example.demo.common.response.BaseResponseStatus.NOT_FIND_USER;
+import static com.example.demo.common.response.BaseResponseStatus.SUBSCRIPTION_REQUIRED;
 
 @RestController
 @RequestMapping("/app/subscription")
@@ -60,22 +61,13 @@ public class PaymentController {
     @Operation(summary = "결제 사전등록", description = "PortOne에 결제 사전등록을 수행하고 결제 이력을 REQUESTED로 기록합니다.")
     @PostMapping("/payments/request")
     public BaseResponse<Void> prepare(@RequestBody PreparePaymentReq req) {
-        Long userId = jwtService.getUserId();
-        User user = userRepository.findByIdAndState(userId, State.ACTIVE)
-                .orElseThrow(() -> new BaseException(NOT_FIND_USER));
+        User user = getCurrentUser();
+        Subscription subscription = getOrCreatePendingSubscription(user);
 
-        Subscription subscription = subscriptionRepository
-                .findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE)
-                .orElseGet(() -> subscriptionRepository.save(
-                        Subscription.builder()
-                                .user(user)
-                                .startDate(LocalDate.now())
-                                .status(SubscriptionStatus.ACTIVE)
-                                .paymentDate(LocalDateTime.now())
-                                .build()
-                ));
+        if (subscription == null) {
+            return new BaseResponse<>(SUBSCRIPTION_REQUIRED);
+        }
 
-        // REQUESTED 기록 저장
         paymentGatewayService.requestPayment(req.getMerchantUid());
         paymentGatewayService.recordRequested(user, subscription, req.getMerchantUid());
         return new BaseResponse<>((Void) null);
@@ -84,25 +76,20 @@ public class PaymentController {
     /**
      * 결제 검증 API (결제 성공 콜백 이후 서버 검증)
      * [POST] /app/subscription/payments/verify
-     * @return BaseResponse<>((Void) null)
+     * @return BaseResponse<VerifyPaymentRes>
      */
     @Operation(summary = "결제 검증", description = "imp_uid로 PortOne 결제내역을 조회하여 서버 금액과 비교, 성공/실패 이력을 저장합니다.")
     @PostMapping("/payments/verify")
     public BaseResponse<VerifyPaymentRes> verify(@RequestBody VerifyPaymentReq req) {
-        Long userId = jwtService.getUserId();
-        User user = userRepository.findByIdAndState(userId, State.ACTIVE)
-                .orElseThrow(() -> new BaseException(NOT_FIND_USER));
+        User user = getCurrentUser();
+        Subscription subscription = getOrCreatePendingSubscription(user);
 
-        Subscription subscription = subscriptionRepository
-                .findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE)
-                .orElseGet(() -> subscriptionRepository.save(
-                        Subscription.builder()
-                                .user(user)
-                                .startDate(LocalDate.now())
-                                .status(SubscriptionStatus.ACTIVE)
-                                .paymentDate(LocalDateTime.now())
-                                .build()
-                ));
+        if (subscription == null) {
+            VerifyPaymentRes res = VerifyPaymentRes.builder()
+                    .status("NOT_SUBSCRIBED")
+                    .build();
+            return new BaseResponse<>(res);
+        }
 
         Payment payment = paymentGatewayService.verifyPayment(
                 req.getImpUid(), req.getMerchantUid(), user, subscription
@@ -112,6 +99,7 @@ public class PaymentController {
         if (payment.getStatus().name().equals("PAID")) {
             user.activateSubscription();
             userRepository.save(user);
+
             // 구독 기간 이력 생성 (1개월)
             Subscription activated = Subscription.builder()
                     .user(user)
@@ -121,6 +109,7 @@ public class PaymentController {
                     .paymentDate(LocalDateTime.now())
                     .build();
             subscriptionRepository.save(activated);
+            paymentGatewayService.linkPaymentToSubscription(payment, activated);
         }
 
         VerifyPaymentRes res = VerifyPaymentRes.builder()
@@ -133,32 +122,52 @@ public class PaymentController {
         return new BaseResponse<>(res);
     }
 
+    /**
+     * 결제 검증 API (결제 성공 콜백 이후 서버 검증)
+     * [POST] /app/subscription/payments/fail
+     * @return BaseResponse<>((Void) null)
+     */
     // 결제창 실패/중단 기록(impUid가 생성되지 않은 경우 포함)
-    @io.swagger.v3.oas.annotations.Operation(summary = "결제 실패 기록", description = "결제창 실패/중단 시 실패 이력을 저장합니다.")
+    @Operation(summary = "결제 실패 기록", description = "결제창 실패/중단 시 실패 이력을 저장합니다.")
     @PostMapping("/payments/fail")
     public BaseResponse<Void> fail(@RequestBody PaymentFailReq req) {
-        Long userId = jwtService.getUserId();
-        User user = userRepository.findByIdAndState(userId, State.ACTIVE)
-                .orElseThrow(() -> new com.example.demo.common.exceptions.BaseException(
-                        NOT_FIND_USER));
+        User user = getCurrentUser();
+        Subscription subscription = getLatestSubscription(user);
 
-        Subscription subscription = subscriptionRepository
-                .findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE)
+        if (subscription != null) {
+            paymentGatewayService.recordFailure(
+                    user,
+                    subscription,
+                    req.getMerchantUid(),
+                    req.getReason() == null ? "User cancelled or failed" : req.getReason()
+            );
+        }
+        return new BaseResponse<>((Void) null);
+    }
+
+    private User getCurrentUser() {
+        Long userId = jwtService.getUserId();
+        return userRepository.findByIdAndState(userId, State.ACTIVE)
+                .orElseThrow(() -> new BaseException(NOT_FIND_USER));
+    }
+
+    private Subscription getOrCreatePendingSubscription(User user) {
+        return subscriptionRepository
+                .findTopByUserAndStateAndStatusOrderByCreatedAtDesc(
+                        user, State.ACTIVE, SubscriptionStatus.PENDING)
                 .orElseGet(() -> subscriptionRepository.save(
                         Subscription.builder()
                                 .user(user)
                                 .startDate(LocalDate.now())
-                                .status(SubscriptionStatus.ACTIVE)
+                                .status(SubscriptionStatus.PENDING)
                                 .paymentDate(LocalDateTime.now())
                                 .build()
                 ));
+    }
 
-        paymentGatewayService.recordFailure(
-                user,
-                subscription,
-                req.getMerchantUid(),
-                req.getReason() == null ? "User cancelled or failed" : req.getReason()
-        );
-        return new BaseResponse<>((Void) null);
+    private Subscription getLatestSubscription(User user) {
+        return subscriptionRepository
+                .findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE)
+                .orElse(null);
     }
 }

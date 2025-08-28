@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class VerifyPaymentRes {
-    private String status;      // PAID / CANCELLED
+    private String status;
     private Integer amount;
     private String impUid;
     private String merchantUid;

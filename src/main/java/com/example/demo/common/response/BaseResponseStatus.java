@@ -58,6 +58,8 @@ public enum BaseResponseStatus {
     SUSPENDED_USER(false, HttpStatus.FORBIDDEN, "ERROR_USER_STATUS_SUSPENDED", "정지된 유저입니다."),
     WITHDRAWN_USER(false, HttpStatus.FORBIDDEN, "ERROR_USER_STATUS_WITHDRAWN", "탈퇴한 유저입니다."),
 
+    SUBSCRIPTION_REQUIRED(false, HttpStatus.FORBIDDEN, "ERROR_USER_NOT_SUBSCRIBED", "구독하지 않은 유저입니다."),
+
     /**
      * 500 :  Database, Server 오류
      */

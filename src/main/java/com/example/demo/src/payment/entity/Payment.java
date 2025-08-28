@@ -25,7 +25,7 @@ public class Payment extends BaseEntity {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subscription_id", nullable = false)
+    @JoinColumn(name = "subscription_id")
     private Subscription subscription;
 
     @Column(name = "merchant_uid", length = 255, nullable = false)
@@ -66,5 +66,9 @@ public class Payment extends BaseEntity {
         this.status = status;
         this.failReason = failReason;
         this.paidAt = paidAt;
+    }
+
+    public void changeSubscription(Subscription subscription) {
+        this.subscription = subscription;
     }
 }

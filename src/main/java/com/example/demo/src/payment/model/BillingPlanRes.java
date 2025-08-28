@@ -7,9 +7,8 @@ import lombok.Getter;
 @Builder
 public class BillingPlanRes {
     private String planId;
-    private int amount;      // KRW
-    private String currency; // "KRW"
-    private String interval; // "month"
-    private String label;    // e.g., "월 9,900원"
+    private int amount;
+    private String currency;
+    private String interval;
+    private String label;
 }
-

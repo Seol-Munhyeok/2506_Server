@@ -52,7 +52,8 @@ public class PaymentGatewayService {
 
         PortOneTokenResponse token = response.getBody();
         if (token == null || token.getResponse() == null) {
-            throw new RuntimeException("Token is null");
+            throw new com.example.demo.common.exceptions.BaseException(
+                    com.example.demo.common.response.BaseResponseStatus.SERVER_ERROR);
         }
         return token.getResponse().getAccessToken();
     }
@@ -70,6 +71,33 @@ public class PaymentGatewayService {
         restTemplate.postForEntity(url, entity, Map.class);
     }
 
+    public void recordRequested(User user, Subscription subscription, String merchantUid) {
+        Payment entity = Payment.builder()
+                .user(user)
+                .subscription(subscription)
+                .merchantUid(merchantUid)
+                .impUid(null)
+                .amount(0)
+                .status(PaymentStatus.REQUESTED)
+                .paidAt(LocalDateTime.now())
+                .build();
+        paymentRepository.save(entity);
+    }
+
+    public void recordFailure(User user, Subscription subscription, String merchantUid, String reason) {
+        Payment entity = Payment.builder()
+                .user(user)
+                .subscription(subscription)
+                .merchantUid(merchantUid)
+                .impUid(null)
+                .amount(0)
+                .status(PaymentStatus.FAILED)
+                .failReason(reason)
+                .paidAt(LocalDateTime.now())
+                .build();
+        paymentRepository.save(entity);
+    }
+
     @Transactional
     public Payment verifyPayment(String impUid, String merchantUid,
                                  User user, Subscription subscription) {
@@ -83,7 +111,12 @@ public class PaymentGatewayService {
                 entity,
                 PortOnePaymentResponse.class);
 
-        PortOnePaymentResponse.PaymentData data = Objects.requireNonNull(response.getBody()).getResponse();
+        PortOnePaymentResponse body = response.getBody();
+        if (body == null || body.getResponse() == null) {
+            throw new com.example.demo.common.exceptions.BaseException(
+                    com.example.demo.common.response.BaseResponseStatus.RESPONSE_ERROR);
+        }
+        PortOnePaymentResponse.PaymentData data = body.getResponse();
         int paidAmount = (int) data.getAmount();
 
         Payment.PaymentBuilder builder = Payment.builder()
@@ -94,7 +127,14 @@ public class PaymentGatewayService {
                 .amount(paidAmount)
                 .paidAt(toLocalDateTime(data.getPaidAt()));
 
-        if (paidAmount != SUBSCRIPTION_PRICE) {
+        // 상태 우선 확인 (포트원 상태가 paid가 아니면 실패로 기록)
+        if (data.getStatus() != null && !"paid".equalsIgnoreCase(data.getStatus())) {
+            builder.status(PaymentStatus.FAILED).failReason(
+                    (data.getFailCode() != null ? data.getFailCode() + ": " : "") +
+                            (data.getFailReason() != null ? data.getFailReason() : data.getStatus())
+            );
+        }
+        else if (paidAmount != SUBSCRIPTION_PRICE) {
             cancelPaymentInternal(token, impUid, "Amount mismatch");
             builder.status(PaymentStatus.CANCELLED).failReason("Amount mismatch");
         } else {
@@ -157,6 +197,35 @@ public class PaymentGatewayService {
         headers.setBearerAuth(token);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
         restTemplate.postForEntity(url, entity, Map.class);
+    }
+
+    public void validateAndCancelIfMismatch(Payment paid) {
+        if (paid.getImpUid() == null) return;
+        String token = getAccessToken();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        ResponseEntity<PortOnePaymentResponse> response = restTemplate.exchange(
+                "https://api.iamport.kr/payments/" + paid.getImpUid(),
+                HttpMethod.GET,
+                entity,
+                PortOnePaymentResponse.class);
+        PortOnePaymentResponse.PaymentData data = Objects.requireNonNull(response.getBody()).getResponse();
+        int amount = (int) data.getAmount();
+        if (amount != SUBSCRIPTION_PRICE) {
+            cancelPaymentInternal(token, paid.getImpUid(), "Scheduled validation mismatch");
+            Payment entityToSave = Payment.builder()
+                    .user(paid.getUser())
+                    .subscription(paid.getSubscription())
+                    .merchantUid(paid.getMerchantUid())
+                    .impUid(paid.getImpUid())
+                    .amount(amount)
+                    .status(PaymentStatus.CANCELLED)
+                    .failReason("Scheduled validation mismatch")
+                    .paidAt(LocalDateTime.now())
+                    .build();
+            paymentRepository.save(entityToSave);
+        }
     }
 
     private LocalDateTime toLocalDateTime(Long epochSeconds) {

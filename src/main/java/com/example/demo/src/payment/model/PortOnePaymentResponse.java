@@ -48,5 +48,9 @@ public class PortOnePaymentResponse {
         private Long canceledAt;
         @JsonProperty("failed_at")
         private Long failedAt;
+        @JsonProperty("fail_reason")
+        private String failReason;
+        @JsonProperty("fail_code")
+        private String failCode;
     }
 }

@@ -21,7 +21,6 @@ public class PaymentValidationScheduler {
     private final PaymentRepository paymentRepository;
     private final PaymentGatewayService gatewayService;
 
-    // 매일 새벽 4시: 최근 24시간 결제 금액 재검증, 불일치시 즉시 취소 처리
     @Scheduled(cron = "0 0 4 * * ?")
     @Transactional
     public void validateRecentPayments() {
@@ -31,7 +30,7 @@ public class PaymentValidationScheduler {
             try {
                 gatewayService.validateAndCancelIfMismatch(p);
             } catch (Exception e) {
-                log.warn("Failed to validate payment id={} impUid={}: {}", p.getId(), p.getImpUid(), e.getMessage());
+                log.warn("결제 검증 실패 id={} impUid={}: {}", p.getId(), p.getImpUid(), e.getMessage());
             }
         }
     }

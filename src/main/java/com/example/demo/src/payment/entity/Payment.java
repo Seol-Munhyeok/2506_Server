@@ -31,7 +31,7 @@ public class Payment extends BaseEntity {
     @Column(name = "merchant_uid", length = 255, nullable = false)
     private String merchantUid;
 
-    @Column(name = "imp_uid", length = 255, nullable = false)
+    @Column(name = "imp_uid", length = 255)
     private String impUid;
 
     @Column(nullable = false)

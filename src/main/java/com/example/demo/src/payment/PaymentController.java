@@ -1,5 +1,6 @@
 package com.example.demo.src.payment;
 
+import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
 import com.example.demo.src.payment.entity.Payment;
 import com.example.demo.src.payment.model.BillingPlanRes;
@@ -13,6 +14,7 @@ import com.example.demo.src.subscription.entity.SubscriptionStatus;
 import com.example.demo.src.user.UserRepository;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.utils.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +22,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static com.example.demo.common.entity.BaseEntity.State;
+import static com.example.demo.common.response.BaseResponseStatus.NOT_FIND_USER;
 
 @RestController
-@RequestMapping("/billing")
+@RequestMapping("/app/subscription")
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -31,6 +34,12 @@ public class PaymentController {
     private final SubscriptionRepository subscriptionRepository;
     private final JwtService jwtService;
 
+    /**
+     * 구독 정보 반환 API (DB 연동 없음)
+     * [GET] /app/subscription/plan
+     * @return BaseResponse<BillingPlanRes>
+     */
+    @Operation(summary = "구독 플랜 조회", description = "월 9,900원 플랜 정보를 반환합니다.")
     @GetMapping("/plan")
     public BaseResponse<BillingPlanRes> getPlan() {
         BillingPlanRes res = BillingPlanRes.builder()
@@ -43,13 +52,18 @@ public class PaymentController {
         return new BaseResponse<>(res);
     }
 
-    @PostMapping("/prepare")
+    /**
+     * 결제 사전등록 API (클라이언트가 결제창 열기 전)
+     * [POST] /app/subscription/payments/request
+     * @return BaseResponse<>((Void) null)
+     */
+    @Operation(summary = "결제 사전등록", description = "PortOne에 결제 사전등록을 수행하고 결제 이력을 REQUESTED로 기록합니다.")
+    @PostMapping("/payments/request")
     public BaseResponse<Void> prepare(@RequestBody PreparePaymentReq req) {
         Long userId = jwtService.getUserId();
         User user = userRepository.findByIdAndState(userId, State.ACTIVE)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BaseException(NOT_FIND_USER));
 
-        // ensure subscription context exists (history model)
         Subscription subscription = subscriptionRepository
                 .findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE)
                 .orElseGet(() -> subscriptionRepository.save(
@@ -61,17 +75,23 @@ public class PaymentController {
                                 .build()
                 ));
 
-        // record REQUESTED history
+        // REQUESTED 기록 저장
         paymentGatewayService.requestPayment(req.getMerchantUid());
         paymentGatewayService.recordRequested(user, subscription, req.getMerchantUid());
         return new BaseResponse<>((Void) null);
     }
 
-    @PostMapping("/verify")
+    /**
+     * 결제 검증 API (결제 성공 콜백 이후 서버 검증)
+     * [POST] /app/subscription/payments/verify
+     * @return BaseResponse<>((Void) null)
+     */
+    @Operation(summary = "결제 검증", description = "imp_uid로 PortOne 결제내역을 조회하여 서버 금액과 비교, 성공/실패 이력을 저장합니다.")
+    @PostMapping("/payments/verify")
     public BaseResponse<VerifyPaymentRes> verify(@RequestBody VerifyPaymentReq req) {
         Long userId = jwtService.getUserId();
         User user = userRepository.findByIdAndState(userId, State.ACTIVE)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BaseException(NOT_FIND_USER));
 
         Subscription subscription = subscriptionRepository
                 .findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE)
@@ -114,11 +134,13 @@ public class PaymentController {
     }
 
     // 결제창 실패/중단 기록(impUid가 생성되지 않은 경우 포함)
-    @PostMapping("/fail")
+    @io.swagger.v3.oas.annotations.Operation(summary = "결제 실패 기록", description = "결제창 실패/중단 시 실패 이력을 저장합니다.")
+    @PostMapping("/payments/fail")
     public BaseResponse<Void> fail(@RequestBody PaymentFailReq req) {
         Long userId = jwtService.getUserId();
         User user = userRepository.findByIdAndState(userId, State.ACTIVE)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new com.example.demo.common.exceptions.BaseException(
+                        NOT_FIND_USER));
 
         Subscription subscription = subscriptionRepository
                 .findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE)

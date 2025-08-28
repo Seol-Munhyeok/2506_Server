@@ -97,19 +97,14 @@ public class PaymentController {
 
         // 결제 성공 시 사용자 구독 활성화
         if (payment.getStatus().name().equals("PAID")) {
-            user.activateSubscription();
+            subscription.activate(
+                    LocalDate.now(),
+                    LocalDate.now().plusMonths(1),
+                    LocalDateTime.now()
+            );
             userRepository.save(user);
-
-            // 구독 기간 이력 생성 (1개월)
-            Subscription activated = Subscription.builder()
-                    .user(user)
-                    .startDate(LocalDate.now())
-                    .endDate(LocalDate.now().plusMonths(1))
-                    .status(SubscriptionStatus.ACTIVE)
-                    .paymentDate(LocalDateTime.now())
-                    .build();
-            subscriptionRepository.save(activated);
-            paymentGatewayService.linkPaymentToSubscription(payment, activated);
+            subscriptionRepository.save(subscription);
+            paymentGatewayService.linkPaymentToSubscription(payment, subscription);
         }
 
         VerifyPaymentRes res = VerifyPaymentRes.builder()
@@ -158,9 +153,7 @@ public class PaymentController {
                 .orElseGet(() -> subscriptionRepository.save(
                         Subscription.builder()
                                 .user(user)
-                                .startDate(LocalDate.now())
                                 .status(SubscriptionStatus.PENDING)
-                                .paymentDate(LocalDateTime.now())
                                 .build()
                 ));
     }

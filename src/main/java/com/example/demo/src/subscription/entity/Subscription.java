@@ -30,7 +30,7 @@ public class Subscription extends BaseEntity {
     @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY)
     private List<Payment> payments = new ArrayList<>();
 
-    @Column(name = "start_date", nullable = false, updatable = false)
+    @Column(name = "start_date", updatable = false)
     private LocalDate startDate;
 
     @Column(name = "end_date", updatable = false)
@@ -55,13 +55,11 @@ public class Subscription extends BaseEntity {
 
     public Subscription activate(LocalDate startDate, LocalDate endDate, LocalDateTime paymentDate) {
         this.user.activateSubscription();
-        return Subscription.builder()
-                .user(this.user)
-                .startDate(startDate)
-                .endDate(endDate)
-                .status(SubscriptionStatus.ACTIVE)
-                .paymentDate(paymentDate)
-                .build();
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.status = SubscriptionStatus.ACTIVE;
+        this.paymentDate = paymentDate;
+        return this;
     }
 
     public Subscription cancel(LocalDate endDate) {

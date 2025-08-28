@@ -30,7 +30,7 @@ public class Subscription extends BaseEntity {
     @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY)
     private List<Payment> payments = new ArrayList<>();
 
-    @Column(name = "start_date", updatable = false)
+    @Column(name = "start_date", updatable = false, nullable = true)
     private LocalDate startDate;
 
     @Column(name = "end_date", updatable = false)

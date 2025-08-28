@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Check;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -52,9 +51,8 @@ public class PaymentGateway extends BaseEntity {
     @Column(name = "amount")
     private BigDecimal amount;
 
-    @NotNull
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pg_payment"))
+    @JoinColumn(name = "payment_id", foreignKey = @ForeignKey(name = "fk_pg_payment"))
     private Payment payment;
 
     @Size(max = 10)

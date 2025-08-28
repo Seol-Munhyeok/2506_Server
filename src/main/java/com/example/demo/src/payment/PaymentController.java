@@ -3,6 +3,7 @@ package com.example.demo.src.payment;
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
 import com.example.demo.src.payment.entity.Payment;
+import com.example.demo.src.payment.entity.PaymentStatus;
 import com.example.demo.src.payment.model.BillingPlanRes;
 import com.example.demo.src.payment.model.PreparePaymentReq;
 import com.example.demo.src.payment.model.PaymentFailReq;
@@ -33,6 +34,7 @@ public class PaymentController {
     private final PaymentGatewayService paymentGatewayService;
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final PaymentRepository paymentRepository;
     private final JwtService jwtService;
 
     /**
@@ -82,7 +84,17 @@ public class PaymentController {
     @PostMapping("/payments/verify")
     public BaseResponse<VerifyPaymentRes> verify(@RequestBody VerifyPaymentReq req) {
         User user = getCurrentUser();
-        Subscription subscription = getLatestSubscription(user);
+        Payment requested = paymentRepository.findByMerchantUid(req.getMerchantUid()).orElse(null);
+
+        if (requested == null || !requested.getUser().getId().equals(user.getId())) {
+            VerifyPaymentRes res = VerifyPaymentRes.builder()
+                    .status("PAYMENT_NOT_FOUND")
+                    .failReason("결제 내역을 찾을 수 없습니다.")
+                    .build();
+            return new BaseResponse<>(res);
+        }
+
+        Subscription subscription = requested.getSubscription();
 
         if (subscription == null) {
             VerifyPaymentRes res = VerifyPaymentRes.builder()
@@ -136,16 +148,16 @@ public class PaymentController {
     @PostMapping("/payments/fail")
     public BaseResponse<Void> fail(@RequestBody PaymentFailReq req) {
         User user = getCurrentUser();
-        Subscription subscription = getLatestSubscription(user);
+        paymentRepository.findByMerchantUid(req.getMerchantUid())
+                .filter(p -> p.getUser().getId().equals(user.getId()))
+                .filter(p -> p.getStatus() == PaymentStatus.REQUESTED)
+                .ifPresent(p -> paymentGatewayService.recordFailure(
+                        user,
+                        p.getSubscription(),
+                        req.getMerchantUid(),
+                        req.getReason() == null ? "사용자 직접 취소 또는 실패" : req.getReason()
+                ));
 
-        if (subscription != null) {
-            paymentGatewayService.recordFailure(
-                    user,
-                    subscription,
-                    req.getMerchantUid(),
-                    req.getReason() == null ? "User cancelled or failed" : req.getReason()
-            );
-        }
         return new BaseResponse<>((Void) null);
     }
 
@@ -165,11 +177,5 @@ public class PaymentController {
                                 .status(SubscriptionStatus.PENDING)
                                 .build()
                 ));
-    }
-
-    private Subscription getLatestSubscription(User user) {
-        return subscriptionRepository
-                .findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE)
-                .orElse(null);
     }
 }

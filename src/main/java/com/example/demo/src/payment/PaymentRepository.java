@@ -7,6 +7,8 @@ import com.example.demo.src.subscription.entity.Subscription;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
@@ -15,5 +17,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("select p from Payment p where p.status = 'PAID' and p.paidAt >= :after")
     List<Payment> findRecentPaid(LocalDateTime after);
 
-    java.util.Optional<Payment> findTopBySubscriptionAndStatusOrderByPaidAtDesc(Subscription subscription, PaymentStatus status);
+    Optional<Payment> findTopBySubscriptionAndStatusOrderByPaidAtDesc(Subscription subscription, PaymentStatus status);
+
+    Optional<Payment> findByMerchantUid(String merchantUid);
 }

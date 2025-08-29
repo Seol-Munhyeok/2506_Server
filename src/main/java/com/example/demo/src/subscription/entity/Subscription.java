@@ -36,6 +36,7 @@ public class Subscription extends BaseEntity {
     @Column(name = "end_date", updatable = false)
     private LocalDate endDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private SubscriptionStatus status;
 

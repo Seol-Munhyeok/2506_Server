@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
+</head>
+<body>
+<button onclick="requestPay()">결제</button>
+<script>
+    IMP.init('imp30670854'); // 본인 가맹점 코드(테스트용)
+    function requestPay() {
+        IMP.request_pay({
+            pg: 'html5_inicis',
+            pay_method: 'card',
+            merchant_uid: 'sub-20250828-1608',
+            name: '월 구독',
+            amount: 9900,
+            buyer_name: '어드민',
+            buyer_tel: '010-1234-5678'
+        }, function (rsp) {
+            console.log(rsp);    // rsp.imp_uid 로 값 확인
+        });
+    }
+</script>
+</body>
+</html>

@@ -16,6 +16,7 @@ import com.example.demo.src.user.UserRepository;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.utils.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,7 @@ import static com.example.demo.common.entity.BaseEntity.State;
 import static com.example.demo.common.response.BaseResponseStatus.NOT_FIND_USER;
 import static com.example.demo.common.response.BaseResponseStatus.SUBSCRIPTION_REQUIRED;
 
+@Tag(name = "payment", description = "구독 결제 API")
 @RestController
 @RequestMapping("/app/subscription")
 @RequiredArgsConstructor
@@ -139,7 +141,7 @@ public class PaymentController {
     }
 
     /**
-     * 결제 검증 API (결제 성공 콜백 이후 서버 검증)
+     * 결제 실패 기록 API
      * [POST] /app/subscription/payments/fail
      * @return BaseResponse<>((Void) null)
      */

@@ -44,6 +44,7 @@ spring:
       client-secret: # client-secret
       callback-login-url: http://localhost:9000/app/users/auth/apple/login/callback
       scope: name email
+
 spring.sql.init.platform: mysql
 server:
   port: 9000
@@ -65,6 +66,13 @@ springdoc:
 
 jwt:
   secret-key: ${JWT_SECRET}
+
+portone:
+  api:
+    key: ${PORTONE_API_KEY}
+    secret: ${PORTONE_API_SECRET}
+
+
 
 ---
 spring:

@@ -1,6 +1,8 @@
 package com.example.demo.src.user;
 
+import com.example.demo.src.subscription.entity.SubscriptionStatus;
 import com.example.demo.src.user.entity.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -16,10 +18,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Optional<User> findByEmailAndState(String email, State state);
     Optional<User> findByLoginIdAndState(String loginId, State state);
     List<User> findAllByEmailAndState(String email, State state, org.springframework.data.domain.Pageable pageable);
-    List<User> findAllByState(State state, org.springframework.data.domain.Pageable pageable);
+    List<User> findAllByState(State state, Pageable pageable);
     List<User> findByPrivacyConsentDateBeforeAndPrivacyConsentStatus(
             LocalDateTime date,
             boolean status
     );
-
 }

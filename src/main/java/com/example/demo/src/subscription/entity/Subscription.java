@@ -1,12 +1,15 @@
 package com.example.demo.src.subscription.entity;
 
 import com.example.demo.common.entity.BaseEntity;
+import com.example.demo.src.payment.entity.Payment;
 import com.example.demo.src.user.entity.User;
 import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = false)
@@ -24,26 +27,62 @@ public class Subscription extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
+    @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY)
+    private List<Payment> payments = new ArrayList<>();
 
-    @Column(name = "end_date")
-    private LocalDate endDate;
-
-    @Column(length = 20, nullable = false)
-    private SubscriptionStatus status;
-
-    @Column(name = "payment_date", columnDefinition = "TIMESTAMP")
-    private LocalDateTime paymentDate;
+    @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY)
+    private List<SubscriptionHistory> histories = new ArrayList<>();
 
     @Builder
-    public Subscription(Long id, User user, LocalDate startDate, LocalDate endDate,
-                        SubscriptionStatus status, LocalDateTime paymentDate) {
+    public Subscription(Long id, User user) {
         this.id = id;
         this.user = user;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.status = status;
-        this.paymentDate = paymentDate;
+    }
+
+    public SubscriptionHistory activate(LocalDate startDate, LocalDate endDate, LocalDateTime paymentDate) {
+        this.user.activateSubscription();
+        return SubscriptionHistory.builder()
+                .subscription(this)
+                .user(this.user)
+                .startDate(startDate)
+                .endDate(endDate)
+                .status(SubscriptionStatus.ACTIVE)
+                .paymentDate(paymentDate)
+                .build();
+    }
+
+    public SubscriptionHistory cancelPending() {
+        this.user.cancelSubscription();
+        this.state = State.INACTIVE;
+        return SubscriptionHistory.builder()
+                .subscription(this)
+                .user(this.user)
+                .status(SubscriptionStatus.CANCELED)
+                .build();
+    }
+
+    public SubscriptionHistory cancel(LocalDate startDate, LocalDate endDate, LocalDateTime paymentDate) {
+        this.user.cancelSubscription();
+        this.state = State.INACTIVE;
+        return SubscriptionHistory.builder()
+                .subscription(this)
+                .user(this.user)
+                .startDate(startDate)
+                .endDate(endDate)
+                .status(SubscriptionStatus.CANCELED)
+                .paymentDate(paymentDate)
+                .build();
+    }
+
+    public SubscriptionHistory expire(LocalDate startDate, LocalDate endDate, LocalDateTime paymentDate) {
+        this.user.cancelSubscription();
+        return SubscriptionHistory.builder()
+                .subscription(this)
+                .user(this.user)
+                .startDate(startDate)
+                .endDate(endDate)
+                .status(SubscriptionStatus.EXPIRED)
+                .paymentDate(paymentDate)
+                .build();
     }
 }

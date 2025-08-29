@@ -38,6 +38,7 @@ public class AppleUser {
                 .privacyConsentStatus(true)
                 .joinedAt(java.time.LocalDateTime.now())
                 .privacyConsentDate(java.time.LocalDateTime.now())
+                .subscriptionActive(false)
                 .build();
     }
 }

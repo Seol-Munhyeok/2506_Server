@@ -31,6 +31,7 @@ public class GetUserRes {
     private boolean locationServiceAgreed;
     private String accountStatus;
     private String loginType;
+    private boolean subscriptionActive;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime joinedAt;
@@ -53,6 +54,7 @@ public class GetUserRes {
         this.locationServiceAgreed = user.isLocationServiceAgreed();
         this.accountStatus = user.getAccountStatus() != null ? user.getAccountStatus().name() : null;
         this.loginType = user.getLoginType() != null ? user.getLoginType().name() : null;
+        this.subscriptionActive = user.isSubscriptionActive();
         this.joinedAt = user.getJoinedAt();
         this.lastLoginAt = user.getLastLoginAt();
         this.privacyConsentDate = user.getPrivacyConsentDate();

@@ -60,6 +60,11 @@ public enum BaseResponseStatus {
 
     SUBSCRIPTION_REQUIRED(false, HttpStatus.FORBIDDEN, "ERROR_USER_NOT_SUBSCRIBED", "구독하지 않은 유저입니다."),
 
+    FEEDS_EMPTY_CONTENT(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_CONTENT_EMPTY", "본문을 입력해주세요."),
+    POST_FEEDS_INVALID_CONTENT(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_CONTENT_LENGTH", "본문은 1자 이상 1000자 이하여야 합니다."),
+    NOT_FIND_FEED(false, HttpStatus.NOT_FOUND, "ERROR_RESOURCE_FEED_NOT_FOUND", "일치하는 피드가 없습니다."),
+    INVALID_FEED_USER(false, HttpStatus.FORBIDDEN, "ERROR_FEED_FORBIDDEN", "작성자만 수정 또는 삭제할 수 있습니다."),
+
     /**
      * 500 :  Database, Server 오류
      */

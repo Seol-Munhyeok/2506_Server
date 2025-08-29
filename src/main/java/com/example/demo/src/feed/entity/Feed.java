@@ -36,4 +36,12 @@ public class Feed extends BaseEntity {
         this.content = content;
         this.status = status;
     }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
+    public void changeStatus(FeedStatus status) {
+        this.status = status;
+    }
 }

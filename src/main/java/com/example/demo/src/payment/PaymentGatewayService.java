@@ -1,5 +1,7 @@
 package com.example.demo.src.payment;
 
+import com.example.demo.common.exceptions.BaseException;
+import com.example.demo.common.response.BaseResponseStatus;
 import com.example.demo.src.payment.entity.Payment;
 import com.example.demo.src.payment.entity.PaymentGateway;
 import com.example.demo.src.payment.entity.PaymentGatewayStatus;
@@ -14,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -22,6 +26,8 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.example.demo.common.response.BaseResponseStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -48,14 +54,22 @@ public class PaymentGatewayService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<PortOneTokenResponse> response = restTemplate.postForEntity(url, entity, PortOneTokenResponse.class);
 
-        PortOneTokenResponse token = response.getBody();
-        if (token == null || token.getResponse() == null) {
-            throw new com.example.demo.common.exceptions.BaseException(
-                    com.example.demo.common.response.BaseResponseStatus.SERVER_ERROR);
+        try {
+            ResponseEntity<PortOneTokenResponse> response = restTemplate.postForEntity(url, entity, PortOneTokenResponse.class);
+            PortOneTokenResponse token = response.getBody();
+            if (token == null || token.getResponse() == null) {
+                throw new BaseException(PORTONE_TOKEN_MISSING);
+            }
+            return token.getResponse().getAccessToken();
+        } catch (HttpStatusCodeException e) {
+            log.error("Failed to get access token: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+            throw new BaseException(PORTONE_TOKEN_MISSING);
+        } catch (RestClientException e) {
+            log.error("RestClientException while getting access token", e);
+            throw new BaseException(REST_CLIENT_EXCEPTION);
         }
-        return token.getResponse().getAccessToken();
+
     }
 
     public void requestPayment(String merchantUid) {
@@ -68,7 +82,15 @@ public class PaymentGatewayService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-        restTemplate.postForEntity(url, entity, Map.class);
+        try {
+            restTemplate.postForEntity(url, entity, Map.class);
+        } catch (HttpStatusCodeException e) {
+            log.error("Request payment failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+            throw new BaseException(SERVER_ERROR);
+        } catch (RestClientException e) {
+            log.error("RestClientException while requesting payment", e);
+            throw new BaseException(REST_CLIENT_EXCEPTION);
+        }
     }
 
     public void recordRequested(User user, Subscription subscription, String merchantUid) {
@@ -110,11 +132,22 @@ public class PaymentGatewayService {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
-        ResponseEntity<PortOnePaymentResponse> response = restTemplate.exchange(
-                "https://api.iamport.kr/payments/" + impUid,
-                HttpMethod.GET,
-                entity,
-                PortOnePaymentResponse.class);
+        ResponseEntity<PortOnePaymentResponse> response;
+        try {
+            response = restTemplate.exchange(
+                    "https://api.iamport.kr/payments/" + impUid,
+                    HttpMethod.GET,
+                    entity,
+                    PortOnePaymentResponse.class);
+        } catch (HttpStatusCodeException e) {
+            log.error("Verify payment failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+            recordFailure(user, subscription, merchantUid, e.getResponseBodyAsString());
+            throw new BaseException(INVALID_PORTONE_REQUEST);
+        } catch (RestClientException e) {
+            log.error("RestClientException while verifying payment", e);
+            recordFailure(user, subscription, merchantUid, e.getMessage());
+            throw new BaseException(REST_CLIENT_EXCEPTION);
+        }
 
         PortOnePaymentResponse body = response.getBody();
         if (body == null || body.getResponse() == null) {
@@ -201,7 +234,15 @@ public class PaymentGatewayService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-        restTemplate.postForEntity(url, entity, Map.class);
+        try {
+            restTemplate.postForEntity(url, entity, Map.class);
+        } catch (HttpStatusCodeException e) {
+            log.error("Cancel payment failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+            throw new BaseException(INVALID_PORTONE_REQUEST);
+        } catch (RestClientException e) {
+            log.error("RestClientException while cancelling payment", e);
+            throw new BaseException(REST_CLIENT_EXCEPTION);
+        }
     }
 
     public void validateAndCancelIfMismatch(Payment paid) {
@@ -210,11 +251,26 @@ public class PaymentGatewayService {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
-        ResponseEntity<PortOnePaymentResponse> response = restTemplate.exchange(
-                "https://api.iamport.kr/payments/" + paid.getImpUid(),
-                HttpMethod.GET,
-                entity,
-                PortOnePaymentResponse.class);
+
+        ResponseEntity<PortOnePaymentResponse> response;
+        try {
+            response = restTemplate.exchange(
+                    "https://api.iamport.kr/payments/" + paid.getImpUid(),
+                    HttpMethod.GET,
+                    entity,
+                    PortOnePaymentResponse.class);
+        } catch (HttpStatusCodeException e) {
+            log.error("Scheduled validation failed: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString(), e);
+            paid.updateFailReason(e.getResponseBodyAsString());
+            paymentRepository.save(paid);
+            return;
+        } catch (RestClientException e) {
+            log.error("RestClientException during scheduled validation", e);
+            paid.updateFailReason(e.getMessage());
+            paymentRepository.save(paid);
+            return;
+        }
+
         PortOnePaymentResponse.PaymentData data = Objects.requireNonNull(response.getBody()).getResponse();
         int amount = (int) data.getAmount();
         if (amount != SUBSCRIPTION_PRICE) {

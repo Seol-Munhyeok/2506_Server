@@ -67,8 +67,10 @@ public enum BaseResponseStatus {
     SERVER_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_SERVER_CONNECTION", "서버와의 연결에 실패하였습니다."),
     PASSWORD_ENCRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_SERVER_PW_ENCRYPT", "비밀번호 암호화에 실패하였습니다."),
     PASSWORD_DECRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_SERVER_PW_DECRYPT", "비밀번호 복호화에 실패하였습니다."),
-    UNEXPECTED_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_SERVER_UNEXPECTED", "예상치 못한 에러가 발생했습니다.");
-
+    UNEXPECTED_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_SERVER_UNEXPECTED", "예상치 못한 에러가 발생했습니다."),
+    PORTONE_TOKEN_MISSING(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_PORTONE_TOKEN_MISSING", "포트원  Access Token이 없습니다."),
+    INVALID_PORTONE_REQUEST(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_INVALID_PORTONE_REQUEST", "잘못된 결제 요청입니다."),
+    REST_CLIENT_EXCEPTION(false, HttpStatus.INTERNAL_SERVER_ERROR, "ERROR_REST_CLIENT_EXCEPTION", "REST_CLIENT_EXCEPTION 발생했습니다.");
 
     private final boolean success;
     private final HttpStatus httpStatus;

@@ -71,4 +71,8 @@ public class Payment extends BaseEntity {
     public void changeSubscription(Subscription subscription) {
         this.subscription = subscription;
     }
+
+    public void updateFailReason(String failReason) {
+        this.failReason = failReason;
+    }
 }

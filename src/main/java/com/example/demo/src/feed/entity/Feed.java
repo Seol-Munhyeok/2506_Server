@@ -22,7 +22,7 @@ public class Feed extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Lob
+    @Column(length = 1000, nullable = false)
     private String content;
 
     @Enumerated(EnumType.STRING)
@@ -34,6 +34,14 @@ public class Feed extends BaseEntity {
         this.id = id;
         this.user = user;
         this.content = content;
+        this.status = status;
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
+    public void changeStatus(FeedStatus status) {
         this.status = status;
     }
 }

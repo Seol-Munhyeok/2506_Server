@@ -60,6 +60,20 @@ public enum BaseResponseStatus {
 
     SUBSCRIPTION_REQUIRED(false, HttpStatus.FORBIDDEN, "ERROR_USER_NOT_SUBSCRIBED", "구독하지 않은 유저입니다."),
 
+    FEEDS_EMPTY_CONTENT(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_CONTENT_EMPTY", "본문을 입력해주세요."),
+    POST_FEEDS_INVALID_CONTENT(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_CONTENT_LENGTH", "본문은 1자 이상 1000자 이하여야 합니다."),
+    NOT_FIND_FEED(false, HttpStatus.NOT_FOUND, "ERROR_RESOURCE_FEED_NOT_FOUND", "일치하는 피드가 없습니다."),
+    INVALID_FEED_USER(false, HttpStatus.FORBIDDEN, "ERROR_FEED_FORBIDDEN", "작성자만 수정 또는 삭제할 수 있습니다."),
+
+    NOT_FIND_REPORT(false, HttpStatus.NOT_FOUND, "ERROR_RESOURCE_REPORT_NOT_FOUND", "일치하는 신고가 없습니다."),
+
+    REPORTS_EMPTY_REASON(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_REPORT_REASON_EMPTY", "신고 사유를 입력해주세요."),
+    REPORTS_EMPTY_CATEGORY(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_REPORT_CATEGORY_EMPTY", "신고 카테고리를 입력해주세요."),
+    REPORTS_SELF_NOT_ALLOWED(false, HttpStatus.FORBIDDEN, "ERROR_REPORT_SELF_FEED", "본인 게시물은 신고할 수 없습니다."),
+
+    IMAGES_EMPTY_FILE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_FILE_EMPTY", "파일을 첨부해주세요."),
+    POST_IMAGES_INVALID_EXTENSION(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_FILE_EXTENSION", "지원하지 않는 파일 확장자입니다."),
+    POST_IMAGES_INVALID_SIZE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_FILE_SIZE", "파일 용량은 5MB 이하이어야 합니다."),
     /**
      * 500 :  Database, Server 오류
      */

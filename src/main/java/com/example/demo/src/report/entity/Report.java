@@ -36,17 +36,26 @@ public class Report extends BaseEntity {
     @Column(name = "report_reason")
     private String reportReason;
 
-    @Column(length = 20, nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "report_category", length = 20, nullable = false)
+    private ReportCategory category;
+
+    @Enumerated(EnumType.STRING)
     private ReportStatus status;
 
     @Builder
     public Report(Long id, User reporter, Feed reportedFeed, Comment reportedComment,
-                  String reportReason, ReportStatus status) {
+                  String reportReason, ReportCategory category, ReportStatus status) {
         this.id = id;
         this.reporter = reporter;
         this.reportedFeed = reportedFeed;
         this.reportedComment = reportedComment;
         this.reportReason = reportReason;
+        this.category = category;
+        this.status = status;
+    }
+
+    public void changeStatus(ReportStatus status) {
         this.status = status;
     }
 }

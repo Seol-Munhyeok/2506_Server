@@ -1,5 +1,6 @@
-package com.example.demo.src.feed.entity;
+package com.example.demo.src.like.entity;
 
+import com.example.demo.src.feed.entity.Feed;
 import com.example.demo.src.user.entity.User;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import javax.persistence.*;
 @Getter
 @Entity
 @Table(name = "feed_likes")
-public class FeedLike {
+public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "feed_like_id", nullable = false, updatable = false)
@@ -25,7 +26,7 @@ public class FeedLike {
     private User user;
 
     @Builder
-    public FeedLike(Long id, Feed feed, User user) {
+    public Like(Long id, Feed feed, User user) {
         this.id = id;
         this.feed = feed;
         this.user = user;

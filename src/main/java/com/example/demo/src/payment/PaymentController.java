@@ -9,8 +9,10 @@ import com.example.demo.src.payment.model.PreparePaymentReq;
 import com.example.demo.src.payment.model.PaymentFailReq;
 import com.example.demo.src.payment.model.VerifyPaymentReq;
 import com.example.demo.src.payment.model.VerifyPaymentRes;
+import com.example.demo.src.subscription.SubscriptionHistoryRepository;
 import com.example.demo.src.subscription.SubscriptionRepository;
 import com.example.demo.src.subscription.entity.Subscription;
+import com.example.demo.src.subscription.entity.SubscriptionHistory;
 import com.example.demo.src.subscription.entity.SubscriptionStatus;
 import com.example.demo.src.user.UserRepository;
 import com.example.demo.src.user.entity.User;
@@ -36,6 +38,7 @@ public class PaymentController {
     private final PaymentGatewayService paymentGatewayService;
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final SubscriptionHistoryRepository subscriptionHistoryRepository;
     private final PaymentRepository paymentRepository;
     private final JwtService jwtService;
 
@@ -105,7 +108,11 @@ public class PaymentController {
             return new BaseResponse<>(res);
         }
 
-        if (subscription.getStatus() != SubscriptionStatus.PENDING) {
+        SubscriptionHistory latest = subscriptionHistoryRepository
+                .findTopBySubscriptionOrderByCreatedAtDesc(subscription)
+                .orElse(null);
+
+        if (latest == null || latest.getStatus() != SubscriptionStatus.PENDING) {
             VerifyPaymentRes res = VerifyPaymentRes.builder()
                     .status("SUBSCRIPTION_STATUS_MISMATCH")
                     .failReason("구독 상태는 PENDING 이어야 합니다.")
@@ -118,13 +125,15 @@ public class PaymentController {
         );
 
         if (payment.getStatus().name().equals("PAID")) {
-            subscription.activate(
+            SubscriptionHistory history = subscription.activate(
                     LocalDate.now(),
                     LocalDate.now().plusMonths(1),
                     LocalDateTime.now()
             );
+            subscriptionHistoryRepository.save(history);
         } else {
-            subscription.cancelPending();
+            SubscriptionHistory history = subscription.cancelPending();
+            subscriptionHistoryRepository.save(history);
         }
         userRepository.save(user);
         subscriptionRepository.save(subscription);
@@ -170,14 +179,26 @@ public class PaymentController {
     }
 
     private Subscription getOrCreatePendingSubscription(User user) {
-        return subscriptionRepository
-                .findTopByUserAndStateAndStatusOrderByCreatedAtDesc(
-                        user, State.ACTIVE, SubscriptionStatus.PENDING)
+        Subscription subscription = subscriptionRepository
+                .findByUser(user)
                 .orElseGet(() -> subscriptionRepository.save(
                         Subscription.builder()
                                 .user(user)
-                                .status(SubscriptionStatus.PENDING)
                                 .build()
                 ));
+
+        SubscriptionHistory latest = subscriptionHistoryRepository
+                .findTopBySubscriptionOrderByCreatedAtDesc(subscription)
+                .orElse(null);
+
+        if (latest == null || latest.getStatus() != SubscriptionStatus.PENDING) {
+            SubscriptionHistory pending = SubscriptionHistory.builder()
+                    .subscription(subscription)
+                    .user(user)
+                    .status(SubscriptionStatus.PENDING)
+                    .build();
+            subscriptionHistoryRepository.save(pending);
+        }
+        return subscription;
     }
 }

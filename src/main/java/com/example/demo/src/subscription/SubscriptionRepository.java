@@ -9,8 +9,5 @@ import static com.example.demo.common.entity.BaseEntity.State;
 import java.util.Optional;
 
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
-    Optional<Subscription> findTopByUserOrderByCreatedAtDesc(User user);
-    Optional<Subscription> findTopByUserAndStateOrderByCreatedAtDesc(User user, State state);
-    Optional<Subscription> findTopByUserAndStateAndStatusOrderByCreatedAtDesc(
-            User user, State state, SubscriptionStatus status);
+    Optional<Subscription> findByUser(User user);
 }

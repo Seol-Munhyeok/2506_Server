@@ -2,7 +2,8 @@ package com.example.demo.src.subscription;
 
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
-import com.example.demo.common.response.BaseResponseStatus;
+import com.example.demo.src.subscription.entity.SubscriptionHistory;
+import com.example.demo.src.subscription.SubscriptionHistoryRepository;
 import com.example.demo.src.payment.entity.PaymentStatus;
 import com.example.demo.src.subscription.entity.Subscription;
 import com.example.demo.src.subscription.entity.SubscriptionStatus;
@@ -32,6 +33,7 @@ public class SubscriptionController {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final SubscriptionHistoryRepository subscriptionHistoryRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentGatewayService gatewayService;
 
@@ -47,15 +49,18 @@ public class SubscriptionController {
         User user = userRepository.findByIdAndState(userId, State.ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
 
-        Optional<Subscription> latest = subscriptionRepository.findTopByUserAndStateOrderByCreatedAtDesc(user, State.ACTIVE);
+        Optional<Subscription> subscription = subscriptionRepository.findByUser(user);
+        Optional<SubscriptionHistory> latest = subscription.flatMap(
+                subscriptionHistoryRepository::findTopBySubscriptionOrderByCreatedAtDesc
+        );
 
         boolean active = user.isSubscriptionActive();
-        String status = latest.map(s -> s.getStatus().name()).orElse("NONE");
+        String status = latest.map(h -> h.getStatus().name()).orElse("NONE");
         SubscriptionStatusRes res = SubscriptionStatusRes.builder()
                 .active(active)
                 .status(status)
-                .startDate(latest.map(Subscription::getStartDate).orElse(null))
-                .endDate(latest.map(Subscription::getEndDate).orElse(null))
+                .startDate(latest.map(SubscriptionHistory::getStartDate).orElse(null))
+                .endDate(latest.map(SubscriptionHistory::getEndDate).orElse(null))
                 .build();
         return new BaseResponse<>(res);
     }
@@ -72,18 +77,25 @@ public class SubscriptionController {
         User user = userRepository.findByIdAndState(userId, State.ACTIVE)
                 .orElseThrow(() -> new BaseException(NOT_FIND_USER));
 
-        Optional<Subscription> latestOpt = subscriptionRepository.findTopByUserOrderByCreatedAtDesc(user);
-        latestOpt.ifPresent(latest -> subscriptionRepository.save(latest.cancel(LocalDate.now())));
+        Optional<Subscription> subscriptionOpt = subscriptionRepository.findByUser(user);
+        Optional<SubscriptionHistory> latestOpt = subscriptionOpt.flatMap(
+                subscriptionHistoryRepository::findTopBySubscriptionOrderByCreatedAtDesc
+        );
 
-        latestOpt.ifPresent(latest -> {
-            Subscription canceled = latest.cancel(LocalDate.now());
-            subscriptionRepository.save(latest);
-            subscriptionRepository.delete(canceled);
-            paymentRepository.findTopBySubscriptionAndStatusOrderByPaidAtDesc(latest, PaymentStatus.PAID)
-                    .ifPresent(paid -> gatewayService.cancelPayment(
-                            paid.getImpUid(), paid.getMerchantUid(), user, latest, "사용자 직접 취소"
-                    ));
-        });
+        subscriptionOpt.ifPresent(subscription ->
+                latestOpt.ifPresent(latest -> {
+                    SubscriptionHistory canceled = subscription.cancel(
+                            latest.getStartDate(),
+                            LocalDate.now(),
+                            latest.getPaymentDate()
+                    );
+                    subscriptionHistoryRepository.save(canceled);
+                    paymentRepository.findTopBySubscriptionAndStatusOrderByPaidAtDesc(subscription, PaymentStatus.PAID)
+                            .ifPresent(paid -> gatewayService.cancelPayment(
+                                    paid.getImpUid(), paid.getMerchantUid(), user, subscription, "사용자 직접 취소"
+                            ));
+                })
+        );
 
         user.cancelSubscription();
         userRepository.save(user);
@@ -91,7 +103,7 @@ public class SubscriptionController {
         SubscriptionStatusRes res = SubscriptionStatusRes.builder()
                 .active(false)
                 .status(SubscriptionStatus.CANCELED.name())
-                .startDate(latestOpt.map(Subscription::getStartDate).orElse(null))
+                .startDate(latestOpt.map(SubscriptionHistory::getStartDate).orElse(null))
                 .endDate(LocalDate.now())
                 .build();
         return new BaseResponse<>(res);

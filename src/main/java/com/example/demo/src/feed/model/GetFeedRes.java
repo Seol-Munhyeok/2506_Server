@@ -15,5 +15,6 @@ public class GetFeedRes {
     private LocalDateTime createdAt;
     private AuthorProfile authorProfile;
     private List<String> imageUrls;
+    private List<String> videoUrls;
     private Long likeCount;
 }

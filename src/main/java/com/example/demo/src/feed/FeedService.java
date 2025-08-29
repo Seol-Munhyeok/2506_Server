@@ -4,6 +4,8 @@ import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponseStatus;
 import com.example.demo.src.comment.CommentRepository;
 import com.example.demo.src.feed.entity.Feed;
+import com.example.demo.src.feed.entity.FeedMedia;
+import com.example.demo.src.feed.entity.FeedMediaType;
 import com.example.demo.src.feed.entity.FeedStatus;
 import com.example.demo.src.feed.model.AuthorProfile;
 import com.example.demo.src.feed.model.GetFeedRes;
@@ -12,7 +14,6 @@ import com.example.demo.src.feed.model.PostFeedReq;
 import com.example.demo.src.like.LikeRepository;
 import com.example.demo.src.user.UserRepository;
 import com.example.demo.src.user.entity.User;
-import com.example.demo.src.feed.entity.FeedImage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,7 +33,7 @@ public class FeedService {
 
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
-    private final FeedImageRepository feedImageRepository;
+    private final FeedMediaRepository feedMediaRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
 
@@ -47,12 +48,18 @@ public class FeedService {
                             f.getUser().getId(),
                             f.getUser().getLoginId(),
                             f.getUser().getName());
-                    List<String> imageUrls = feedImageRepository.findAllByFeedId(f.getId())
+                    List<String> imageUrls = feedMediaRepository
+                            .findAllByFeedIdAndMediaType(f.getId(), FeedMediaType.IMAGE)
                             .stream()
-                            .map(FeedImage::getImageUrl)
+                            .map(FeedMedia::getMediaUrl)
+                            .collect(Collectors.toList());
+                    List<String> videoUrls = feedMediaRepository
+                            .findAllByFeedIdAndMediaType(f.getId(), FeedMediaType.VIDEO)
+                            .stream()
+                            .map(FeedMedia::getMediaUrl)
                             .collect(Collectors.toList());
                     Long likeCount = likeRepository.countByFeedId(f.getId());
-                    return new GetFeedRes(f.getId(), f.getUser().getId(), f.getContent(), f.getCreatedAt(), profile, imageUrls, likeCount);
+                    return new GetFeedRes(f.getId(), f.getUser().getId(), f.getContent(), f.getCreatedAt(), profile, imageUrls, videoUrls, likeCount);
                 })
                 .collect(Collectors.toList());
     }
@@ -66,13 +73,20 @@ public class FeedService {
                 feed.getUser().getId(),
                 feed.getUser().getLoginId(),
                 feed.getUser().getName());
-        List<String> imageUrls = feedImageRepository.findAllByFeedId(feed.getId())
+        List<String> imageUrls = feedMediaRepository
+                .findAllByFeedIdAndMediaType(feed.getId(), FeedMediaType.IMAGE)
                 .stream()
-                .map(FeedImage::getImageUrl)
+                .map(FeedMedia::getMediaUrl)
+                .collect(Collectors.toList());
+        List<String> videoUrls = feedMediaRepository
+                .findAllByFeedIdAndMediaType(feed.getId(), FeedMediaType.VIDEO)
+                .stream()
+                .map(FeedMedia::getMediaUrl)
                 .collect(Collectors.toList());
         Long likeCount = likeRepository.countByFeedId(feed.getId());
-        return new GetFeedRes(feed.getId(), feed.getUser().getId(), feed.getContent(), feed.getCreatedAt(), profile, imageUrls, likeCount);
+        return new GetFeedRes(feed.getId(), feed.getUser().getId(), feed.getContent(), feed.getCreatedAt(), profile, imageUrls, videoUrls, likeCount);
     }
+
 
     @Transactional
     public Long createFeed(Long userId, PostFeedReq req) {
@@ -88,7 +102,23 @@ public class FeedService {
         feedRepository.save(feed);
         List<String> imageUrls = req.getImageUrls();
         if (imageUrls != null) {
-            imageUrls.forEach(url -> feedImageRepository.save(FeedImage.builder().feed(feed).imageUrl(url).build()));
+            imageUrls.forEach(url ->
+                    feedMediaRepository.save(
+                            FeedMedia.builder()
+                                    .feed(feed)
+                                    .mediaUrl(url)
+                                    .mediaType(FeedMediaType.IMAGE)
+                                    .build()));
+        }
+        List<String> videoUrls = req.getVideoUrls();
+        if (videoUrls != null) {
+            videoUrls.forEach(url ->
+                    feedMediaRepository.save(
+                            FeedMedia.builder()
+                                    .feed(feed)
+                                    .mediaUrl(url)
+                                    .mediaType(FeedMediaType.VIDEO)
+                                    .build()));
         }
         return feed.getId();
     }
@@ -102,9 +132,27 @@ public class FeedService {
         validateContent(content);
         feed.updateContent(content);
         List<String> imageUrls = req.getImageUrls();
-        if (imageUrls != null) {
-            feedImageRepository.deleteAll(feedImageRepository.findAllByFeedId(feedId));
-            imageUrls.forEach(url -> feedImageRepository.save(FeedImage.builder().feed(feed).imageUrl(url).build()));
+        List<String> videoUrls = req.getVideoUrls();
+        if (imageUrls != null || videoUrls != null) {
+            feedMediaRepository.deleteAll(feedMediaRepository.findAllByFeedId(feedId));
+            if (imageUrls != null) {
+                imageUrls.forEach(url ->
+                        feedMediaRepository.save(
+                                FeedMedia.builder()
+                                        .feed(feed)
+                                        .mediaUrl(url)
+                                        .mediaType(FeedMediaType.IMAGE)
+                                        .build()));
+            }
+            if (videoUrls != null) {
+                videoUrls.forEach(url ->
+                        feedMediaRepository.save(
+                                FeedMedia.builder()
+                                        .feed(feed)
+                                        .mediaUrl(url)
+                                        .mediaType(FeedMediaType.VIDEO)
+                                        .build()));
+            }
         }
     }
 
@@ -114,7 +162,7 @@ public class FeedService {
                 .orElseThrow(() -> new BaseException(NOT_FIND_FEED));
         if (!feed.getUser().getId().equals(userId)) throw new BaseException(INVALID_FEED_USER);
         likeRepository.deleteAll(likeRepository.findAllByFeedId(feedId));
-        commentRepository.deleteAll(commentRepository.findAllByFeedId(feedId));
+        commentRepository.deleteAllByFeedId(feedId);
         feed.changeStatus(FeedStatus.INACTIVE);
     }
 

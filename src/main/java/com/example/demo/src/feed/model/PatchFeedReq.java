@@ -14,4 +14,5 @@ public class PatchFeedReq {
     @Size(max = 1000, message = "본문은 1자 이상 1000자 이하여야 합니다.")
     private String content;
     private List<String> imageUrls;
+    private List<String> videoUrls;
 }

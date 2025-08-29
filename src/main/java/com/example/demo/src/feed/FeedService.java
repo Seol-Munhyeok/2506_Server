@@ -8,6 +8,7 @@ import com.example.demo.src.feed.model.AuthorProfile;
 import com.example.demo.src.feed.model.GetFeedRes;
 import com.example.demo.src.feed.model.PatchFeedReq;
 import com.example.demo.src.feed.model.PostFeedReq;
+import com.example.demo.src.like.LikeRepository;
 import com.example.demo.src.user.UserRepository;
 import com.example.demo.src.user.entity.User;
 import com.example.demo.src.feed.entity.FeedImage;
@@ -31,7 +32,7 @@ public class FeedService {
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
     private final FeedImageRepository feedImageRepository;
-    private final FeedLikeRepository feedLikeRepository;
+    private final LikeRepository likeRepository;
 
     @Transactional(readOnly = true)
     public List<GetFeedRes> getFeeds(int pageIndex, int size) {
@@ -48,7 +49,7 @@ public class FeedService {
                             .stream()
                             .map(FeedImage::getImageUrl)
                             .collect(Collectors.toList());
-                    Long likeCount = feedLikeRepository.countByFeedId(f.getId());
+                    Long likeCount = likeRepository.countByFeedId(f.getId());
                     return new GetFeedRes(f.getId(), f.getUser().getId(), f.getContent(), f.getCreatedAt(), profile, imageUrls, likeCount);
                 })
                 .collect(Collectors.toList());
@@ -67,7 +68,7 @@ public class FeedService {
                 .stream()
                 .map(FeedImage::getImageUrl)
                 .collect(Collectors.toList());
-        Long likeCount = feedLikeRepository.countByFeedId(feed.getId());
+        Long likeCount = likeRepository.countByFeedId(feed.getId());
         return new GetFeedRes(feed.getId(), feed.getUser().getId(), feed.getContent(), feed.getCreatedAt(), profile, imageUrls, likeCount);
     }
 

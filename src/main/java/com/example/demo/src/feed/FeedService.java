@@ -10,11 +10,14 @@ import com.example.demo.src.feed.model.PatchFeedReq;
 import com.example.demo.src.feed.model.PostFeedReq;
 import com.example.demo.src.user.UserRepository;
 import com.example.demo.src.user.entity.User;
+import com.example.demo.src.feed.entity.FeedImage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,7 +59,16 @@ public class FeedService {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new BaseException(NOT_FIND_FEED));
         if (feed.getStatus() != FeedStatus.ACTIVE) throw new BaseException(NOT_FIND_FEED);
-        return new GetFeedRes(feed.getId(), feed.getUser().getId(), feed.getContent(), feed.getCreatedAt());
+        AuthorProfile profile = new AuthorProfile(
+                feed.getUser().getId(),
+                feed.getUser().getLoginId(),
+                feed.getUser().getName());
+        List<String> imageUrls = feedImageRepository.findAllByFeedId(feed.getId())
+                .stream()
+                .map(FeedImage::getImageUrl)
+                .collect(Collectors.toList());
+        Long likeCount = feedLikeRepository.countByFeedId(feed.getId());
+        return new GetFeedRes(feed.getId(), feed.getUser().getId(), feed.getContent(), feed.getCreatedAt(), profile, imageUrls, likeCount);
     }
 
     @Transactional

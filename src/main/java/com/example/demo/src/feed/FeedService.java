@@ -2,6 +2,7 @@ package com.example.demo.src.feed;
 
 import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponseStatus;
+import com.example.demo.src.comment.CommentRepository;
 import com.example.demo.src.feed.entity.Feed;
 import com.example.demo.src.feed.entity.FeedStatus;
 import com.example.demo.src.feed.model.AuthorProfile;
@@ -33,6 +34,7 @@ public class FeedService {
     private final UserRepository userRepository;
     private final FeedImageRepository feedImageRepository;
     private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional(readOnly = true)
     public List<GetFeedRes> getFeeds(int pageIndex, int size) {
@@ -111,6 +113,8 @@ public class FeedService {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new BaseException(NOT_FIND_FEED));
         if (!feed.getUser().getId().equals(userId)) throw new BaseException(INVALID_FEED_USER);
+        likeRepository.deleteAll(likeRepository.findAllByFeedId(feedId));
+        commentRepository.deleteAll(commentRepository.findAllByFeedId(feedId));
         feed.changeStatus(FeedStatus.INACTIVE);
     }
 

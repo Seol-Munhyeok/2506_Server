@@ -65,6 +65,9 @@ public enum BaseResponseStatus {
     NOT_FIND_FEED(false, HttpStatus.NOT_FOUND, "ERROR_RESOURCE_FEED_NOT_FOUND", "일치하는 피드가 없습니다."),
     INVALID_FEED_USER(false, HttpStatus.FORBIDDEN, "ERROR_FEED_FORBIDDEN", "작성자만 수정 또는 삭제할 수 있습니다."),
 
+    IMAGES_EMPTY_FILE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_FILE_EMPTY", "파일을 첨부해주세요."),
+    POST_IMAGES_INVALID_EXTENSION(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_FILE_EXTENSION", "지원하지 않는 파일 확장자입니다."),
+    POST_IMAGES_INVALID_SIZE(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_FILE_SIZE", "파일 용량은 5MB 이하이어야 합니다."),
     /**
      * 500 :  Database, Server 오류
      */

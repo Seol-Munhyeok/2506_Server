@@ -82,7 +82,12 @@ public class FeedService {
                 .content(content)
                 .status(FeedStatus.ACTIVE)
                 .build();
-        return feedRepository.save(feed).getId();
+        feedRepository.save(feed);
+        List<String> imageUrls = req.getImageUrls();
+        if (imageUrls != null) {
+            imageUrls.forEach(url -> feedImageRepository.save(FeedImage.builder().feed(feed).imageUrl(url).build()));
+        }
+        return feed.getId();
     }
 
     @Transactional
@@ -93,6 +98,11 @@ public class FeedService {
         String content = req.getContent();
         validateContent(content);
         feed.updateContent(content);
+        List<String> imageUrls = req.getImageUrls();
+        if (imageUrls != null) {
+            feedImageRepository.deleteAll(feedImageRepository.findAllByFeedId(feedId));
+            imageUrls.forEach(url -> feedImageRepository.save(FeedImage.builder().feed(feed).imageUrl(url).build()));
+        }
     }
 
     @Transactional

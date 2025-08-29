@@ -22,7 +22,7 @@ public class Feed extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Lob
+    @Column(length = 1000, nullable = false)
     private String content;
 
     @Enumerated(EnumType.STRING)

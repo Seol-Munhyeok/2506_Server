@@ -4,11 +4,7 @@ import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponse;
 import com.example.demo.src.payment.entity.Payment;
 import com.example.demo.src.payment.entity.PaymentStatus;
-import com.example.demo.src.payment.model.BillingPlanRes;
-import com.example.demo.src.payment.model.PreparePaymentReq;
-import com.example.demo.src.payment.model.PaymentFailReq;
-import com.example.demo.src.payment.model.VerifyPaymentReq;
-import com.example.demo.src.payment.model.VerifyPaymentRes;
+import com.example.demo.src.payment.model.*;
 import com.example.demo.src.subscription.SubscriptionHistoryRepository;
 import com.example.demo.src.subscription.SubscriptionRepository;
 import com.example.demo.src.subscription.entity.Subscription;
@@ -20,10 +16,12 @@ import com.example.demo.utils.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.example.demo.common.entity.BaseEntity.State;
 import static com.example.demo.common.response.BaseResponseStatus.NOT_FIND_USER;
@@ -40,7 +38,9 @@ public class PaymentController {
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionHistoryRepository subscriptionHistoryRepository;
     private final PaymentRepository paymentRepository;
+
     private final JwtService jwtService;
+    private final PaymentService paymentService;
 
     /**
      * 구독 정보 반환 API (DB 연동 없음)
@@ -57,6 +57,23 @@ public class PaymentController {
                 .interval("month")
                 .label("월 9,900원")
                 .build();
+        return new BaseResponse<>(res);
+    }
+
+    /**
+     * 결제 이력 조회 API
+     * [GET] /app/subscription/payments
+     * @return BaseResponse<List<GetPaymentRes>>
+     */
+    @Operation(summary = "결제 이력 조회", description = "사용자 ID, 상태, 기간으로 결제 이력을 조회합니다.")
+    @GetMapping("/payments")
+    public BaseResponse<List<GetPaymentRes>> getPayments(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) PaymentStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startAt,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endAt
+    ) {
+        List<GetPaymentRes> res = paymentService.getPayments(userId, status, startAt, endAt);
         return new BaseResponse<>(res);
     }
 

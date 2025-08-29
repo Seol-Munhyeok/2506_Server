@@ -4,6 +4,7 @@ import com.example.demo.common.exceptions.BaseException;
 import com.example.demo.common.response.BaseResponseStatus;
 import com.example.demo.src.feed.entity.Feed;
 import com.example.demo.src.feed.entity.FeedStatus;
+import com.example.demo.src.feed.model.AuthorProfile;
 import com.example.demo.src.feed.model.GetFeedRes;
 import com.example.demo.src.feed.model.PatchFeedReq;
 import com.example.demo.src.feed.model.PostFeedReq;
@@ -26,6 +27,8 @@ public class FeedService {
 
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
+    private final FeedImageRepository feedImageRepository;
+    private final FeedLikeRepository feedLikeRepository;
 
     @Transactional(readOnly = true)
     public List<GetFeedRes> getFeeds(int pageIndex, int size) {
@@ -33,7 +36,18 @@ public class FeedService {
                         FeedStatus.ACTIVE,
                         PageRequest.of(pageIndex, size, Sort.by(Sort.Direction.DESC, "createdAt")))
                 .stream()
-                .map(f -> new GetFeedRes(f.getId(), f.getUser().getId(), f.getContent(), f.getCreatedAt()))
+                .map(f -> {
+                    AuthorProfile profile = new AuthorProfile(
+                            f.getUser().getId(),
+                            f.getUser().getLoginId(),
+                            f.getUser().getName());
+                    List<String> imageUrls = feedImageRepository.findAllByFeedId(f.getId())
+                            .stream()
+                            .map(FeedImage::getImageUrl)
+                            .collect(Collectors.toList());
+                    Long likeCount = feedLikeRepository.countByFeedId(f.getId());
+                    return new GetFeedRes(f.getId(), f.getUser().getId(), f.getContent(), f.getCreatedAt(), profile, imageUrls, likeCount);
+                })
                 .collect(Collectors.toList());
     }
 

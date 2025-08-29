@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -12,4 +13,7 @@ public class GetFeedRes {
     private Long userId;
     private String content;
     private LocalDateTime createdAt;
+    private AuthorProfile authorProfile;
+    private List<String> imageUrls;
+    private Long likeCount;
 }

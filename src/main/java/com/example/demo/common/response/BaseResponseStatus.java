@@ -65,6 +65,8 @@ public enum BaseResponseStatus {
     NOT_FIND_FEED(false, HttpStatus.NOT_FOUND, "ERROR_RESOURCE_FEED_NOT_FOUND", "일치하는 피드가 없습니다."),
     INVALID_FEED_USER(false, HttpStatus.FORBIDDEN, "ERROR_FEED_FORBIDDEN", "작성자만 수정 또는 삭제할 수 있습니다."),
 
+    NOT_FIND_REPORT(false, HttpStatus.NOT_FOUND, "ERROR_RESOURCE_REPORT_NOT_FOUND", "일치하는 신고가 없습니다."),
+
     REPORTS_EMPTY_REASON(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_REPORT_REASON_EMPTY", "신고 사유를 입력해주세요."),
     REPORTS_EMPTY_CATEGORY(false, HttpStatus.BAD_REQUEST, "ERROR_REQ_PARAM_REPORT_CATEGORY_EMPTY", "신고 카테고리를 입력해주세요."),
     REPORTS_SELF_NOT_ALLOWED(false, HttpStatus.FORBIDDEN, "ERROR_REPORT_SELF_FEED", "본인 게시물은 신고할 수 없습니다."),

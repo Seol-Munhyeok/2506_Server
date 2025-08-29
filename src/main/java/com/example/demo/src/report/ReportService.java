@@ -24,6 +24,9 @@ public class ReportService {
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
 
+    private static final int REPORT_THRESHOLD = 5;
+
+
     @Transactional
     public Long reportFeed(Long feedId, Long reporterId, PostReportReq req) {
         if (req.getReason() == null || req.getReason().trim().isEmpty()) {
@@ -48,7 +51,19 @@ public class ReportService {
                 .status(ReportStatus.PENDING)
                 .build();
         reportRepository.save(report);
+        checkAndDeactivateFeed(feedId);
         return report.getId();
     }
+
+    @Transactional
+    public void checkAndDeactivateFeed(Long feedId) {
+        long count = reportRepository.countByReportedFeedIdAndStatus(feedId, ReportStatus.PENDING);
+        if (count >= REPORT_THRESHOLD) {
+            Feed feed = feedRepository.findById(feedId)
+                    .orElseThrow(() -> new BaseException(NOT_FIND_FEED));
+            feed.changeStatus(FeedStatus.INACTIVE);
+        }
+    }
+
 }
 

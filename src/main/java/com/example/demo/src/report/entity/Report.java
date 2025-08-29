@@ -54,4 +54,8 @@ public class Report extends BaseEntity {
         this.category = category;
         this.status = status;
     }
+
+    public void changeStatus(ReportStatus status) {
+        this.status = status;
+    }
 }

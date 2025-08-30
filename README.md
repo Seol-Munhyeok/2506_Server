@@ -2,7 +2,7 @@
 본 템플릿은 소프트스퀘어드 서버 교육용 Spring Boot 템플릿 입니다.
 
 ## ERD
-![ERD](.\src\main\resources\ERD.png)
+![ERD](https://res.cloudinary.com/drg2mizpe/image/upload/v1756569382/ERD_swfm2b.png)
 ### 주요 도메인
 * `User`: 회원 계정 관리 (로그인 정보, 동의 여부, 계정 상태, 구독 여부)
 * `Feed` / `Comment` / `Like`: 피드, 댓글, 좋아요 및 첨부 미디어(`feed_media`) 관리
@@ -10,7 +10,7 @@
 * `Subscription` / `Historie`: 구독 상태와 이력 관리
 * `Payment` / `Payment_gateway`: 결제 내역과 PG사 응답 데이터 관리
 * `Logs`: 사용자·시스템 주요 행위(CRUD) 기록
-* 
+
 ## ✨Common
 ### REST API
 REST API를 처리하는 SpringBoot 프로젝트   

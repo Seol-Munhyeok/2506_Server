@@ -2,7 +2,7 @@
 본 템플릿은 소프트스퀘어드 서버 교육용 Spring Boot 템플릿 입니다.
 
 ## ERD
-![ERD](.\src\main\resources\erd4.svg)
+![ERD](.\src\main\resources\ERD.png)
 ### 주요 도메인
 * `User`: 회원 계정 관리 (로그인 정보, 동의 여부, 계정 상태, 구독 여부)
 * `Feed` / `Comment` / `Like`: 피드, 댓글, 좋아요 및 첨부 미디어(`feed_media`) 관리
